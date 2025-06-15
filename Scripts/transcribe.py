@@ -11,7 +11,7 @@ else:
     print("File not found!")
 
 model = whisper.load_model("base")
-result = model.transcribe("D:/Python Projects/NLP_Customer_Audit_Project/Data/archive/call_recording_02.wav")
+result = model.transcribe("D:/Python Projects/NLP_Customer_Audit_Project/recording.wav")
 
 print(f' The text in video: \n {result["text"]}')
 
