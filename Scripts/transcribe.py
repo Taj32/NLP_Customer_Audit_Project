@@ -1,4 +1,4 @@
-#Transcribe audio files using OpenAI's Whisper model
+# Transcribe audio files using OpenAI's Whisper model
 import whisper, os
 
 import sys
@@ -11,8 +11,11 @@ else:
     print("File not found!")
 
 model = whisper.load_model("base")
-result = model.transcribe("D:/Python Projects/NLP_Customer_Audit_Project/recording.wav")
+result = model.transcribe(r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\recording_20250618_153432.wav")
 
-print(f' The text in video: \n {result["text"]}')
+# Save transcription to a text file
+output_file = "D:/Python Projects/NLP_Customer_Audit_Project/transcripts/transcription2.txt"
+with open(output_file, "w", encoding="utf-8") as f:
+    f.write(result["text"])
 
-
+print(f'Transcription saved to {output_file}')
