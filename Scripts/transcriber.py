@@ -39,6 +39,8 @@ class Transcriber:
 
         print(f"Transcription saved to {output_file}")
 
+        return output_file
+
 # Example usage
 if __name__ == "__main__":
     # Create an instance of the Transcriber class
