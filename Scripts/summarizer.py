@@ -17,7 +17,7 @@ class ConversationSummarizer:
             device=0 if torch.cuda.is_available() else -1
         )
 
-    def summarize_conversation(self, input_path, output_dir, input_type="audio"):
+    def summarize_conversation(self, input_path, output_dir, input_type="audio", sentiment_score=None, emotion_results=None):
         """
         Summarize a conversation by transcribing audio or summarizing a transcription file.
 
@@ -56,14 +56,84 @@ class ConversationSummarizer:
 
         # Step 2: Summarize the transcription
         print("Summarizing transcription...")
-        summary = self.generate_summary(transcript)
+        if(sentiment_score == None or sentiment_score == None):
+           summary = self.generate_summary_independent(transcript)
+        else:
+            summary = self.generate_summary(transcript, sentiment_score, emotion_results)
+       # summary = self.generate_summary(transcript)
 
         # Print and return the summary
         print("\n\n[[Summary]]: ")
         print(summary)
         return summary
 
-    def generate_summary(self, text):
+    def generate_summary(self, text, sentiment, emotion):
+        """
+        Generate a summary using a generative model, incorporating sentiment and emotion metrics.
+
+        :param text: The text to summarize.
+        :return: A summarized version of the text.
+        """
+        # Analyze sentiment and emotion metrics
+        metrics = self.analyze_metrics(text)
+        sentiment = metrics["sentiment"]
+        emotion = metrics["emotion"]
+
+        # Define the maximum input length for the model
+        max_input_length = 512  # Reduce chunk size to avoid long intermediate summaries
+
+        # Split the text into chunks that fit within the model's token limit
+        chunks = [text[i:i + max_input_length] for i in range(0, len(text), max_input_length)]
+
+        # Summarize each chunk
+        chunk_summaries = []
+        for i, chunk in enumerate(chunks):
+            print(f"Summarizing chunk {i + 1}/{len(chunks)}...")
+            prompt = (
+                f"Summarize the following conversation in a detailed and coherent way:\n\n"
+                f"Sentiment: {sentiment}\nEmotion: {emotion}\n\n"
+                f"{chunk}\n\nSummary:"
+            )
+            response = self.summarizer(
+                prompt,
+                max_new_tokens=300,  # Increase the maximum number of tokens for longer summaries
+                min_length=150,      # Set a higher minimum length for more detail
+                num_return_sequences=1,
+                do_sample=False,     # Use deterministic output to avoid randomness
+                truncation=True      # Explicitly enable truncation
+            )
+            chunk_summaries.append(response[0]['summary_text'])
+
+        # Combine all chunk summaries into a single text
+        combined_summary = " ".join(chunk_summaries)
+
+        # Truncate the combined summary to fit within the model's token limit
+        max_combined_length = 1024  # Ensure the combined summary fits within the model's limit
+        truncated_combined_summary = combined_summary[:max_combined_length]
+
+        # Generate a final summary from the combined summaries
+        print("Generating final summary...")
+        final_prompt = (
+            f"Combine the following summaries into a single detailed and coherent summary:\n\n"
+            f"Sentiment: {sentiment}\nEmotion: {emotion}\n\n"
+            f"{truncated_combined_summary}\n\nFinal Summary:"
+        )
+        final_response = self.summarizer(
+            final_prompt,
+            max_new_tokens=400,  # Allow more tokens for the final summary
+            min_length=200,      # Ensure the final summary is sufficiently detailed
+            num_return_sequences=1,
+            do_sample=False,     # Use deterministic output for the final summary
+            truncation=True
+        )
+
+        # Post-process the final summary to remove repetitive or nonsensical text
+        final_summary = final_response[0]['generated_text']
+        final_summary = self.clean_summary(final_summary)
+
+        return final_summary
+    
+    def generate_summary_independent(self, text):
         max_input_length = 1024
         chunks = [text[i:i + max_input_length] for i in range(0, len(text), max_input_length)]
 
@@ -136,8 +206,6 @@ if __name__ == "__main__":
     #transcription_file = r"D:\Python Projects\NLP_Customer_Audit_Project\transcripts\transcription_20250701_183407.txt" # full conversation
 
     transcription_file = r"D:\Python Projects\NLP_Customer_Audit_Project\transcripts\long_conversation.txt" # Claude conversation with message names
-    
-
     
     output_dir = r"D:\Python Projects\NLP_Customer_Audit_Project\transcripts"
     # Run the summarization pipeline

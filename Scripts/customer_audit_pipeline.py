@@ -8,6 +8,7 @@ from audio_recorder import AudioRecorder
 from emotion_classifier import EmotionClassifier
 from sentiment_analyzer import SentimentAnalyzer
 from transcriber import Transcriber
+from summarizer import ConversationSummarizer
 
 class CustomerAuditPipeline:
     def __init__(self):
@@ -53,6 +54,16 @@ class CustomerAuditPipeline:
             print("Sentiment analysis failed. Exiting pipeline.")
             return
 
+        # Step 5: Summarize conversation
+        print("\nStep 5: Summarizing conversation...")
+        summarizer = ConversationSummarizer()
+        #output_dir = r"D:\Python Projects\NLP_Customer_Audit_Project\transcripts"
+        summary = summarizer.summarize_conversation(transcription_file, None, input_type="transcription")
+        #summary = self.summarizer.generate_summary(transcription_file, self.output_dir, input_type="transcription")
+        if not summary:
+            print("Summarization failed. Exiting pipeline.")
+            return
+
         # Final Output
         print("\nPipeline completed successfully!")
         print("\nEmotion Results:")
@@ -62,6 +73,9 @@ class CustomerAuditPipeline:
 
         print("\nSentiment Scores:")
         print(sentiment_scores)
+
+        print("\nSummary:")
+        print(summary)
 
 # Run the pipeline
 if __name__ == "__main__":
