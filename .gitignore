@@ -1,5 +1,9 @@
 # Virtual environments
-myenv/
+myenv/ 
+venv/ 
+env/ 
+.venv/ 
+.env/
 .env
 
 # data

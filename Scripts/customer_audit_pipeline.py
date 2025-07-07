@@ -1,31 +1,48 @@
-# import AudioRecorder
-# import Transcriber
-# import EmotionClassifier
-# import SentimentAnalyzer
+"""
+Customer Audit Pipeline
+
+This script defines the `CustomerAuditPipeline` class, which provides functionality to record audio,
+transcribe it, classify emotions, analyze sentiment, and summarize conversations. The pipeline integrates
+multiple components to process customer interactions and generate insights.
+"""
+
 from datetime import datetime
 import os
 
+# Import pipeline components
 from audio_recorder import AudioRecorder
 from emotion_classifier import EmotionClassifier
 from sentiment_analyzer import SentimentAnalyzer
 from transcriber import Transcriber
 from summarizer import ConversationSummarizer
 
+
 class CustomerAuditPipeline:
+    """
+    A class to define the customer audit pipeline.
+
+    Attributes:
+        audio_recorder (AudioRecorder): Component for recording audio.
+        transcriber (Transcriber): Component for transcribing audio.
+        output_dir (str): Directory to save transcription files.
+        summary_dir (str): Directory to save summary files.
+    """
+
     def __init__(self):
         """
-        Initialize the pipeline components.
+        Initialize the pipeline components and directories.
         """
         self.audio_recorder = AudioRecorder(output_folder="recordings")
         self.transcriber = Transcriber(model_name="base")
-        self.output_dir = "transcripts"
+        self.output_dir = "transcripts"  # Directory to save transcriptions
         self.summary_dir = "summaries"  # Directory to save summaries
-        
+
     def save_summary(self, summary):
         """
         Save the generated summary to a text file in the summaries folder.
 
-        :param summary: The summary text to save.
+        Args:
+            summary (str): The summary text to save.
         """
         # Ensure the summaries directory exists
         os.makedirs(self.summary_dir, exist_ok=True)
@@ -42,7 +59,7 @@ class CustomerAuditPipeline:
 
     def run_pipeline(self):
         """
-        Run the full pipeline: Record audio, transcribe it, classify emotions, and analyze sentiment.
+        Run the full pipeline: Record audio, transcribe it, classify emotions, analyze sentiment, and summarize.
         """
         # Step 1: Record audio
         print("Step 1: Recording audio...")
@@ -52,7 +69,7 @@ class CustomerAuditPipeline:
             return
 
         # Step 2: Transcribe audio
-        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\lean_interview.wav"
+        audio_file = r"C:\Users\tajvi\OneDrive\Desktop\pythonProjects\NLP_Customer_Audit_Project\recordings\lean_interview.wav"
         print("\nStep 2: Transcribing audio...")
         os.makedirs(self.output_dir, exist_ok=True)
         transcription_file = self.transcriber.transcribe_audio(audio_file, self.output_dir)
@@ -79,13 +96,11 @@ class CustomerAuditPipeline:
         # Step 5: Summarize conversation
         print("\nStep 5: Summarizing conversation...")
         summarizer = ConversationSummarizer()
-        #output_dir = r"D:\Python Projects\NLP_Customer_Audit_Project\transcripts"
         summary = summarizer.summarize_conversation(transcription_file, None, input_type="transcription")
-        #summary = self.summarizer.generate_summary(transcription_file, self.output_dir, input_type="transcription")
         if not summary:
             print("Summarization failed. Exiting pipeline.")
             return
-        
+
         # Save the summary to a text file
         self.save_summary(summary)
 
@@ -101,6 +116,7 @@ class CustomerAuditPipeline:
 
         print("\nSummary:")
         print(summary)
+
 
 # Run the pipeline
 if __name__ == "__main__":

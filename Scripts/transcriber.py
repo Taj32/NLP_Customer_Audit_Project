@@ -1,3 +1,11 @@
+"""
+Transcriber Module
+
+This module provides functionality to transcribe audio files and perform speaker diarization using
+pre-trained models. It integrates Whisper for transcription and PyAnnote for speaker diarization.
+The `Transcriber` class is the main component of this module.
+"""
+
 import whisper
 import os
 import sys
@@ -7,9 +15,20 @@ from dotenv import load_dotenv
 
 
 class Transcriber:
+    """
+    A class to transcribe audio files and perform speaker diarization.
+
+    Attributes:
+        model (whisper.Whisper): Pre-trained Whisper model for transcription.
+        diarization_pipeline (pyannote.audio.Pipeline): Pre-trained speaker diarization pipeline.
+    """
+
     def __init__(self, model_name="base"):
         """
         Initialize the Transcriber with a specified Whisper model and diarization pipeline.
+
+        Args:
+            model_name (str): Name of the Whisper model to use for transcription.
         """
         print(f"Using Python interpreter: {sys.executable}")
         self.model = whisper.load_model(model_name)
@@ -18,7 +37,7 @@ class Transcriber:
         # Initialize speaker diarization pipeline
         load_dotenv()
         huggingface_token = os.getenv("HUGGINGFACE_TOKEN")
-        
+
         print("Initializing speaker diarization pipeline...")
         try:
             self.diarization_pipeline = Pipeline.from_pretrained(
@@ -34,12 +53,16 @@ class Transcriber:
         """
         Transcribe the given audio file and save the transcription to a text file.
 
-        :param audio_path: Path to the audio file to transcribe.
-        :param output_dir: Directory to save the transcription text file.
+        Args:
+            audio_path (str): Path to the audio file to transcribe.
+            output_dir (str): Directory to save the transcription text file.
+
+        Returns:
+            str: Path to the saved transcription file, or None if the transcription fails.
         """
         if not os.path.exists(audio_path):
             print(f"File not found: {audio_path}")
-            return
+            return None
 
         print(f"File exists: {audio_path}")
 
@@ -71,14 +94,17 @@ class Transcriber:
         print(f"Transcription saved to {output_file}")
 
         return output_file
-    
+
     def align_diarization_with_transcription(self, diarization_result, transcription_segments):
         """
         Align speaker diarization results with transcription segments.
 
-        :param diarization_result: Speaker diarization output.
-        :param transcription_segments: Whisper transcription segments.
-        :return: A string containing the transcription with speaker labels.
+        Args:
+            diarization_result (pyannote.audio.Pipeline): Speaker diarization output.
+            transcription_segments (list): Whisper transcription segments.
+
+        Returns:
+            str: A string containing the transcription with speaker labels.
         """
         transcript_with_speakers = ""
         for segment in transcription_segments:
@@ -95,19 +121,22 @@ class Transcriber:
 
             # Append speaker label and text to the transcript
             transcript_with_speakers += f"{speaker}: {text}\n"
-            
-        
+
         # Add breaking line and timestamp
         current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         transcript_with_speakers += "----------\n"
         transcript_with_speakers += f"{current_timestamp}\n"
 
-
-
         return transcript_with_speakers
+
 
 # Example usage
 if __name__ == "__main__":
+    """
+    Example usage of the Transcriber class.
+
+    This script demonstrates how to transcribe an audio file and save the transcription.
+    """
     # Create an instance of the Transcriber class
     transcriber = Transcriber(model_name="base")
 

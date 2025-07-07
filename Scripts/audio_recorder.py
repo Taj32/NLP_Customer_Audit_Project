@@ -1,10 +1,33 @@
+"""
+Audio Recorder Module
+
+This module provides functionality to record audio, detect silence, apply automatic gain control (AGC),
+and save the recorded audio to a WAV file. It includes a class `AudioRecorder` and a main entry point
+for direct script execution.
+"""
+
 import pyaudio
 import numpy as np
 import wave
 import os
 from datetime import datetime
 
+
 class AudioRecorder:
+    """
+    A class for recording audio with silence detection and automatic gain control (AGC).
+
+    Attributes:
+        output_folder (str): Directory to save recordings.
+        silence_threshold (int): RMS threshold to detect silence.
+        silence_duration (float): Duration of silence to trigger auto-stop.
+        target_rms (int): Target RMS for AGC.
+        format (int): Audio format (default: pyaudio.paInt16).
+        channels (int): Number of audio channels (default: 1).
+        rate (int): Sampling rate (default: 44100 Hz).
+        chunk (int): Buffer size for audio frames (default: 1024).
+    """
+
     def __init__(
         self,
         output_folder="recordings",
@@ -16,6 +39,19 @@ class AudioRecorder:
         rate=44100,
         chunk=1024
     ):
+        """
+        Initializes the AudioRecorder instance with default or user-provided settings.
+
+        Args:
+            output_folder (str): Directory to save recordings.
+            silence_threshold (int): RMS threshold to detect silence.
+            silence_duration (float): Duration of silence to trigger auto-stop.
+            target_rms (int): Target RMS for AGC.
+            format (int): Audio format.
+            channels (int): Number of audio channels.
+            rate (int): Sampling rate.
+            chunk (int): Buffer size for audio frames.
+        """
         self.output_folder = output_folder
         self.silence_threshold = silence_threshold
         self.silence_duration = silence_duration
@@ -30,10 +66,16 @@ class AudioRecorder:
         self.stream = None
         self.audio = None
 
+        # Ensure the output folder exists
         os.makedirs(self.output_folder, exist_ok=True)
 
     def start_recording(self, auto_stop=True):
-        """Start recording. If auto_stop=True, stops after silence_duration."""
+        """
+        Starts recording audio. Optionally stops after a duration of silence.
+
+        Args:
+            auto_stop (bool): If True, stops recording after silence_duration seconds of silence.
+        """
         self.audio = pyaudio.PyAudio()
         self.stream = self.audio.open(
             format=self.format,
@@ -52,10 +94,11 @@ class AudioRecorder:
 
         try:
             while self.is_recording:
+                # Read raw audio data from the stream
                 raw_data = self.stream.read(self.chunk, exception_on_overflow=False)
                 audio_data = np.frombuffer(raw_data, dtype=np.int16)
 
-                # Silence detection (raw audio)
+                # Calculate RMS for silence detection
                 raw_rms = np.sqrt(np.mean(audio_data.astype(np.float32) ** 2)) if len(audio_data) > 0 else 0
                 if auto_stop:
                     if raw_rms < self.silence_threshold:
@@ -63,12 +106,13 @@ class AudioRecorder:
                     else:
                         silence_counter = 0
 
+                    # Stop recording if silence duration is exceeded
                     if silence_counter >= silence_chunks:
                         print(f"\nStopped due to {self.silence_duration}s of silence.")
                         self.stop_recording()
                         break
 
-                # AGC (applied to saved audio)
+                # Apply Automatic Gain Control (AGC)
                 if raw_rms > 0:
                     desired_gain = self.target_rms / raw_rms
                     self.current_gain = 0.2 * self.current_gain + 0.8 * desired_gain
@@ -76,11 +120,14 @@ class AudioRecorder:
                 self.frames.append(adjusted_data.tobytes())
 
         except KeyboardInterrupt:
+            # Handle manual stop
             self.stop_recording()
             print("\nRecording stopped manually.")
 
     def stop_recording(self):
-        """Stop recording and cleanup."""
+        """
+        Stops recording and cleans up resources.
+        """
         if self.is_recording:
             self.is_recording = False
             if self.stream:
@@ -91,7 +138,15 @@ class AudioRecorder:
             print("Recording stopped.")
 
     def save_recording(self, filename=None):
-        """Save recorded audio to a WAV file."""
+        """
+        Saves the recorded audio to a WAV file.
+
+        Args:
+            filename (str): Name of the output file. If None, generates a timestamp-based name.
+
+        Returns:
+            str: Path to the saved file, or None if no audio was recorded.
+        """
         if not self.frames:
             print("No audio to save.")
             return None
@@ -101,9 +156,10 @@ class AudioRecorder:
             filename = f"recording_{timestamp}.wav"
         filepath = os.path.join(self.output_folder, filename)
 
+        # Write audio data to a WAV file
         with wave.open(filepath, 'wb') as wf:
             wf.setnchannels(self.channels)
-            wf.setsampwidth(2)
+            wf.setsampwidth(2)  # 16-bit audio
             wf.setframerate(self.rate)
             wf.writeframes(b''.join(self.frames))
 
@@ -111,13 +167,20 @@ class AudioRecorder:
         return filepath
 
     def record_until_silence(self):
-        """Convenience method: Start + auto-stop on silence + save."""
+        """
+        Convenience method to start recording, auto-stop on silence, and save the recording.
+
+        Returns:
+            str: Path to the saved file, or None if no audio was recorded.
+        """
         self.start_recording(auto_stop=True)
         return self.save_recording()
 
 
 def main():
-    """Entry point for direct script execution."""
+    """
+    Entry point for direct script execution.
+    """
     recorder = AudioRecorder()
     try:
         recorder.record_until_silence()  # Auto-stop on silence
