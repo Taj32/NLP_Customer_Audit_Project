@@ -95,6 +95,14 @@ class Transcriber:
 
             # Append speaker label and text to the transcript
             transcript_with_speakers += f"{speaker}: {text}\n"
+            
+        
+        # Add breaking line and timestamp
+        current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        transcript_with_speakers += "----------\n"
+        transcript_with_speakers += f"{current_timestamp}\n"
+
+
 
         return transcript_with_speakers
 

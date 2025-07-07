@@ -2,6 +2,7 @@
 # import Transcriber
 # import EmotionClassifier
 # import SentimentAnalyzer
+from datetime import datetime
 import os
 
 from audio_recorder import AudioRecorder
@@ -18,6 +19,26 @@ class CustomerAuditPipeline:
         self.audio_recorder = AudioRecorder(output_folder="recordings")
         self.transcriber = Transcriber(model_name="base")
         self.output_dir = "transcripts"
+        self.summary_dir = "summaries"  # Directory to save summaries
+        
+    def save_summary(self, summary):
+        """
+        Save the generated summary to a text file in the summaries folder.
+
+        :param summary: The summary text to save.
+        """
+        # Ensure the summaries directory exists
+        os.makedirs(self.summary_dir, exist_ok=True)
+
+        # Generate a unique filename based on the current timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        summary_file = os.path.join(self.summary_dir, f"summary_{timestamp}.txt")
+
+        # Save the summary to the file
+        with open(summary_file, "w", encoding="utf-8") as f:
+            f.write(summary)
+
+        print(f"Summary saved to {summary_file}")
 
     def run_pipeline(self):
         """
@@ -31,7 +52,7 @@ class CustomerAuditPipeline:
             return
 
         # Step 2: Transcribe audio
-        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\recording_20250705_190119.wav"
+        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\lean_interview.wav"
         print("\nStep 2: Transcribing audio...")
         os.makedirs(self.output_dir, exist_ok=True)
         transcription_file = self.transcriber.transcribe_audio(audio_file, self.output_dir)
@@ -64,6 +85,9 @@ class CustomerAuditPipeline:
         if not summary:
             print("Summarization failed. Exiting pipeline.")
             return
+        
+        # Save the summary to a text file
+        self.save_summary(summary)
 
         # Final Output
         print("\nPipeline completed successfully!")
