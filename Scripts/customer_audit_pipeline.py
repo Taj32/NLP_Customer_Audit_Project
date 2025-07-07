@@ -31,6 +31,7 @@ class CustomerAuditPipeline:
             return
 
         # Step 2: Transcribe audio
+        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\recording_20250705_190119.wav"
         print("\nStep 2: Transcribing audio...")
         os.makedirs(self.output_dir, exist_ok=True)
         transcription_file = self.transcriber.transcribe_audio(audio_file, self.output_dir)

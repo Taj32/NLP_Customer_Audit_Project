@@ -9,7 +9,7 @@ class AudioRecorder:
         self,
         output_folder="recordings",
         silence_threshold=100,
-        silence_duration=2.0,
+        silence_duration=5.0,
         target_rms=3000,
         format=pyaudio.paInt16,
         channels=1,

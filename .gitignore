@@ -1,5 +1,6 @@
 # Virtual environments
 myenv/
+.env
 
 # datasets
 data/
