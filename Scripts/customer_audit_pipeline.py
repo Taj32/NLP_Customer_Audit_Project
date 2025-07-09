@@ -69,7 +69,7 @@ class CustomerAuditPipeline:
             return
 
         # Step 2: Transcribe audio
-        audio_file = r"C:\Users\tajvi\OneDrive\Desktop\pythonProjects\NLP_Customer_Audit_Project\recordings\lean_interview.wav"
+        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\lean_interview.wav"
         print("\nStep 2: Transcribing audio...")
         os.makedirs(self.output_dir, exist_ok=True)
         transcription_file = self.transcriber.transcribe_audio(audio_file, self.output_dir)
@@ -116,6 +116,9 @@ class CustomerAuditPipeline:
 
         print("\nSummary:")
         print(summary)
+        
+        print("day summary:")
+        print(summarizer.summarize_day(transcription_file, "20250707"))
 
 
 # Run the pipeline

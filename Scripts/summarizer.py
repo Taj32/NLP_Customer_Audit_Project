@@ -93,6 +93,48 @@ class ConversationSummarizer:
         print(summary)
         return summary
 
+    def summarize_day(self, day, summaries_dir="summaries"):
+        """
+        Summarize all conversations from a specific day.
+
+        Args:
+            day (str): The day to summarize in the format 'YYYYMMDD'.
+            summaries_dir (str): The directory containing summary files.
+
+        Returns:
+            str: An overall summary of the day's conversations.
+        """
+        # Ensure the summaries directory exists
+        if not os.path.exists(summaries_dir):
+            print(f"Summaries directory not found: {summaries_dir}")
+            return None
+
+        # Find all summary files for the specified day
+        summary_files = glob.glob(os.path.join(summaries_dir, f"summary_{day}_*.txt"))
+        if not summary_files:
+            print(f"No summaries found for the day: {day}")
+            return None
+
+        # Combine all summaries into a single text
+        combined_summaries = ""
+        for summary_file in summary_files:
+            with open(summary_file, "r", encoding="utf-8") as f:
+                combined_summaries += f.read() + "\n"
+
+        # Generate an overall summary
+        print("Generating overall summary for the day...")
+        overall_summary = self.summarizer(
+            combined_summaries,
+            max_new_tokens=500,  # Allow more tokens for a longer summary
+            min_length=200,
+            num_return_sequences=1,
+            do_sample=False,
+            truncation=True
+        )[0]['summary_text']
+
+        # Clean and return the overall summary
+        return self.clean_summary(overall_summary)
+
     def generate_summary(self, text, sentiment, emotion):
         """
         Generate a summary using a generative model, incorporating sentiment and emotion metrics.
