@@ -15,6 +15,8 @@ from emotion_classifier import EmotionClassifier
 from sentiment_analyzer import SentimentAnalyzer
 from transcriber import Transcriber
 from summarizer import ConversationSummarizer
+import wave
+import threading
 
 
 class CustomerAuditPipeline:
@@ -36,6 +38,8 @@ class CustomerAuditPipeline:
         self.transcriber = Transcriber(model_name="base")
         self.output_dir = "transcripts"  # Directory to save transcriptions
         self.summary_dir = "summaries"  # Directory to save summaries
+        self.processing_threads = []  # List to track active processing threads
+
 
     def save_summary(self, summary):
         """
@@ -118,10 +122,129 @@ class CustomerAuditPipeline:
         print(summary)
         
         print("day summary:")
-        print(summarizer.summarize_day(transcription_file, "20250707"))
+        print(summarizer.summarize_day("20250707"))
+
+
+    
+        """
+        Process a single conversation: Transcribe, classify emotions, analyze sentiment, and summarize.
+
+        Args:
+            audio_frames (list): List of audio frames for the conversation.
+        """
+        # Save the audio frames to a temporary file
+        temp_audio_file = os.path.join(self.audio_recorder.output_folder, "temp_conversation.wav")
+        with wave.open(temp_audio_file, 'wb') as wf:
+            wf.setnchannels(self.audio_recorder.channels)
+            wf.setsampwidth(2)  # 16-bit audio
+            wf.setframerate(self.audio_recorder.rate)
+            wf.writeframes(b''.join(audio_frames))
+
+        # Transcribe the audio
+        print("\nTranscribing conversation...")
+        transcription_file = self.transcriber.transcribe_audio(temp_audio_file, self.output_dir)
+        if not transcription_file:
+            print("Transcription failed.")
+            return
+
+        # Classify emotions
+        print("\nClassifying emotions...")
+        emotion_classifier = EmotionClassifier(transcription_file)
+        emotion_results = emotion_classifier.classify_emotions()
+
+        # Analyze sentiment
+        print("\nAnalyzing sentiment...")
+        sentiment_analyzer = SentimentAnalyzer(transcription_file)
+        sentiment_scores = sentiment_analyzer.analyze_sentiment()
+
+        # Summarize conversation
+        print("\nSummarizing conversation...")
+        summarizer = ConversationSummarizer()
+        summary = summarizer.summarize_conversation(transcription_file, None, input_type="transcription")
+
+        # Save the summary
+        self.save_summary(summary)
+
+        # Print results
+        print("\nEmotion Results:")
+        for result_list in emotion_results:
+            for result in result_list:
+                print(f"Label: {result['label']}, Score: {result['score']}")
+
+        print("\nSentiment Scores:")
+        print(sentiment_scores)
+
+        print("\nSummary:")
+        print(summary)
+     
+    def process_conversation(self, audio_frames):
+        """
+        Process a single conversation: Transcribe, classify emotions, analyze sentiment, and summarize.
+
+        Args:
+            audio_frames (list): List of audio frames for the conversation.
+        """
+        def process_task():
+            # Save the audio frames to a temporary file
+            temp_audio_file = os.path.join(self.audio_recorder.output_folder, "temp_conversation.wav")
+            with wave.open(temp_audio_file, 'wb') as wf:
+                wf.setnchannels(self.audio_recorder.channels)
+                wf.setsampwidth(2)  # 16-bit audio
+                wf.setframerate(self.audio_recorder.rate)
+                wf.writeframes(b''.join(audio_frames))
+
+            # Transcribe the audio
+            print("\nTranscribing conversation...")
+            transcription_file = self.transcriber.transcribe_audio(temp_audio_file, self.output_dir)
+            if not transcription_file:
+                print("Transcription failed.")
+                return
+
+            # Classify emotions
+            print("\nClassifying emotions...")
+            emotion_classifier = EmotionClassifier(transcription_file)
+            emotion_results = emotion_classifier.classify_emotions()
+
+            # Analyze sentiment
+            print("\nAnalyzing sentiment...")
+            sentiment_analyzer = SentimentAnalyzer(transcription_file)
+            sentiment_scores = sentiment_analyzer.analyze_sentiment()
+
+            # Summarize conversation
+            print("\nSummarizing conversation...")
+            summarizer = ConversationSummarizer()
+            summary = summarizer.summarize_conversation(transcription_file, None, input_type="transcription")
+
+            # Save the summary
+            self.save_summary(summary)
+
+            # Print results
+            print("\nEmotion Results:")
+            for result_list in emotion_results:
+                for result in result_list:
+                    print(f"Label: {result['label']}, Score: {result['score']}")
+
+            print("\nSentiment Scores:")
+            print(sentiment_scores)
+
+            print("\nSummary:")
+            print(summary)
+
+        # Start a new thread for processing the conversation
+        processing_thread = threading.Thread(target=process_task)
+        processing_thread.start()
+        self.processing_threads.append(processing_thread)
+        
+    def run_continuous_pipeline(self):
+        """
+        Run the pipeline continuously, processing conversations on the fly.
+        """
+        print("Starting continuous pipeline...")
+        self.audio_recorder.listen_continuously(self.process_conversation)
 
 
 # Run the pipeline
 if __name__ == "__main__":
     pipeline = CustomerAuditPipeline()
-    pipeline.run_pipeline()
+    # pipeline.run_pipeline()
+    pipeline.run_continuous_pipeline()

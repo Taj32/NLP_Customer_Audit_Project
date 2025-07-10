@@ -31,8 +31,8 @@ class AudioRecorder:
     def __init__(
         self,
         output_folder="recordings",
-        silence_threshold=100,
-        silence_duration=5.0,
+        silence_threshold=500,
+        silence_duration=6.0,
         target_rms=3000,
         format=pyaudio.paInt16,
         channels=1,
@@ -176,6 +176,96 @@ class AudioRecorder:
         self.start_recording(auto_stop=True)
         return self.save_recording()
 
+    # Listen for continuous audio input and process conversations
+
+    def listen_continuously(self, on_conversation_end):
+        """
+        Continuously listen for audio and process conversations when silence is detected.
+
+        Args:
+            on_conversation_end (function): Callback function to process audio after a conversation ends.
+        """
+        self.audio = pyaudio.PyAudio()
+        self.stream = self.audio.open(
+            format=self.format,
+            channels=self.channels,
+            rate=self.rate,
+            input=True,
+            frames_per_buffer=self.chunk
+        )
+        print("Listening continuously... Press Ctrl+C to stop.")
+
+        silence_counter = 0
+        silence_chunks = int(self.silence_duration * self.rate / self.chunk)
+        conversation_frames = []
+        recording = False  # Flag to indicate if we are currently recording
+
+        try:
+            while True:
+                # Read raw audio data from the stream
+                raw_data = self.stream.read(self.chunk, exception_on_overflow=False)
+                audio_data = np.frombuffer(raw_data, dtype=np.int16)
+
+                # Calculate RMS for silence detection
+                raw_rms = np.sqrt(np.mean(audio_data.astype(np.float32) ** 2)) if len(audio_data) > 0 else 0
+
+                # Check if the audio level is below the silence threshold
+                if raw_rms < self.silence_threshold:
+                    silence_counter += 1
+                else:
+                    silence_counter = 0
+
+                # Start recording only when sound is detected
+                if raw_rms >= self.silence_threshold and not recording:
+                    print("Beginning to record...")
+                    recording = True
+
+                # Add audio data to the current conversation if recording
+                if recording:
+                    conversation_frames.append(raw_data)
+
+                # If silence duration is exceeded, process the conversation
+                if silence_counter >= silence_chunks and recording:
+                    print("Silence detected. Processing conversation...")
+                    on_conversation_end(conversation_frames)
+                    conversation_frames = []
+                    silence_counter = 0  # Reset silence counter
+                    recording = False  # Reset recording flag
+
+        except KeyboardInterrupt:
+            print("Stopping continuous listening...")
+        finally:
+            self.stop_stream()
+
+    def stop_stream(self):
+        """Stop the audio stream."""
+        if self.stream:
+            self.stream.stop_stream()
+            self.stream.close()
+        if self.audio:
+            self.audio.terminate()
+            
+    def start_stream(self):
+        """Restart the audio stream."""
+        try:
+            # List available devices (optional for debugging)
+            print("Available audio devices:")
+            for i in range(self.audio.get_device_count()):
+                device_info = self.audio.get_device_info_by_index(i)
+                print(f"Device {i}: {device_info['name']} (Input Channels: {device_info['maxInputChannels']})")
+
+            # Open the audio stream
+            self.stream = self.audio.open(
+                format=self.format,
+                channels=self.channels,
+                rate=self.rate,
+                input=True,
+                input_device_index=None,  # Set to None to use the default device, or specify an index
+                frames_per_buffer=self.chunk
+            )
+        except OSError as e:
+            print(f"Failed to start audio stream: {e}")
+            raise
 
 def main():
     """
