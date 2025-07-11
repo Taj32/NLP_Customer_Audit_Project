@@ -199,6 +199,16 @@ class CustomerAuditPipeline:
             if not transcription_file:
                 print("Transcription failed.")
                 return
+            
+            # Check if the transcription is empty (ignoring separator and timestamp)
+            with open(transcription_file, "r", encoding="utf-8") as f:
+                transcription_lines = f.readlines()
+            transcription_content = "".join(transcription_lines[:-2]).strip()  # Ignore the last two lines (separator and timestamp)
+            if not transcription_content:
+                print("Transcription is empty. Discarding this conversation.")
+                os.remove(transcription_file)  # Delete the empty transcription file
+                return
+
 
             # Classify emotions
             print("\nClassifying emotions...")
