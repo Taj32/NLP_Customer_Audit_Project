@@ -9,14 +9,11 @@ from emotion_classifier import EmotionClassifier
 from sentiment_analyzer import SentimentAnalyzer
 import torch
 import os
-import nltk
 from nltk import sent_tokenize
 
 
 class ConversationSummarizer:
     def __init__(self):
-        #nltk.download('punkt_tab')
-        #nltk.download('punkt')
         self.transcriber = Transcriber(model_name="base")
         print("CUDA Availability:", torch.cuda.is_available())
         if torch.cuda.is_available():
@@ -100,48 +97,24 @@ class ConversationSummarizer:
         return self.clean_summary(overall_summary)
 
     def generate_summary(self, text, sentiment, emotion):
-        """
-        Generate a summary using a generative model, incorporating sentiment and emotion metrics.
-
-        Args:
-            text (str): The text to summarize.
-            sentiment (dict): Sentiment analysis results.
-            emotion (list): Emotion classification results.
-
-        Returns:
-            str: A summarized version of the text.
-        """
         chunks = self.chunk_by_sentences(text)
         chunk_summaries = []
         for i, chunk in enumerate(chunks):
             print(f"Summarizing chunk {i + 1}/{len(chunks)}...")
+            prompt = f"Summarize the following conversation:\n\n{chunk}"
             try:
-                output = self.summarizer(
-                    chunk,
-                    max_length=200,  # Adjusted for more concise summaries
-                    min_length=50,
-                    do_sample=False
-                )[0]['generated_text']
+                output = self.summarizer(prompt, max_length=300, min_length=100, do_sample=False)[0]['generated_text']
                 chunk_summaries.append(output)
             except Exception as e:
                 print(f"Error summarizing chunk {i + 1}: {str(e)}")
                 continue
 
-        # Combine all chunk summaries into a single text
         combined_summary = " ".join(chunk_summaries)
-
-        # Deduplicate the final summary
-        deduplicated_summary = self.deduplicate_summary(combined_summary)
-
-        # Append sentiment and emotion analysis results
         sentiment_summary = f"\n\nSentiment Analysis:\n{sentiment}"
         emotion_summary = f"\n\nEmotion Analysis:\n{', '.join([f'{e['label']} ({e['score']:.2f})' for e in emotion])}"
-        final_summary = deduplicated_summary + sentiment_summary + emotion_summary
-
-        return self.clean_summary(final_summary)
+        return self.clean_summary(combined_summary + sentiment_summary + emotion_summary)
 
     def generate_summary_independent(self, text):
-        print("Generating summary without sentiment or emotion metrics...")
         chunks = self.chunk_by_sentences(text)
         chunk_summaries = []
         for i, chunk in enumerate(chunks):
@@ -157,23 +130,6 @@ class ConversationSummarizer:
         return self.clean_summary(" ".join(chunk_summaries))
 
     def chunk_by_sentences(self, text, max_chars=1024):
-        """
-        Split the text into chunks based on sentences, ensuring each chunk is within the character limit.
-
-        Args:
-            text (str): The text to split into chunks.
-            max_chars (int): Maximum number of characters per chunk.
-
-        Returns:
-            list: A list of text chunks.
-        """
-        # Ensure the 'punkt' resource is available
-        try:
-            nltk.data.find('tokenizers/punkt')
-        except LookupError:
-            nltk.download('punkt')
-
-        # Tokenize the text into sentences
         sentences = sent_tokenize(text)
         chunks, current_chunk = [], ""
         for sentence in sentences:
@@ -188,27 +144,6 @@ class ConversationSummarizer:
 
     def clean_summary(self, summary):
         return summary.replace("\n", " ").replace("  ", " ")
-
-    def deduplicate_summary(self, summary):
-        """
-        Remove repeated sentences from the summary.
-
-        Args:
-            summary (str): The generated summary.
-
-        Returns:
-            str: A deduplicated version of the summary.
-        """
-        sentences = sent_tokenize(summary)
-        seen = set()
-        deduplicated_sentences = []
-        for sentence in sentences:
-            # Normalize the sentence by stripping whitespace and converting to lowercase
-            normalized_sentence = sentence.strip().lower()
-            if normalized_sentence not in seen:
-                deduplicated_sentences.append(sentence)
-                seen.add(normalized_sentence)
-        return " ".join(deduplicated_sentences)
 
 
 if __name__ == "__main__":

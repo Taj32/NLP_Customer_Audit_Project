@@ -73,12 +73,21 @@ class CustomerAuditPipeline:
             return
 
         # Step 2: Transcribe audio
-        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\lean_interview.wav"
         print("\nStep 2: Transcribing audio...")
+        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\Bladee.wav" # For testing purposes, remove later
         os.makedirs(self.output_dir, exist_ok=True)
         transcription_file = self.transcriber.transcribe_audio(audio_file, self.output_dir)
         if not transcription_file:
             print("Transcription failed. Exiting pipeline.")
+            return
+
+        # Check if the transcription is empty (ignoring separator and timestamp)
+        with open(transcription_file, "r", encoding="utf-8") as f:
+            transcription_lines = f.readlines()
+        transcription_content = "".join(transcription_lines[:-2]).strip()  # Ignore the last two lines (separator and timestamp)
+        if not transcription_content:
+            print("Transcription is empty. Discarding this conversation.")
+            os.remove(transcription_file)  # Delete the empty transcription file
             return
 
         # Step 3: Classify emotions
@@ -120,62 +129,7 @@ class CustomerAuditPipeline:
 
         print("\nSummary:")
         print(summary)
-        
-        print("day summary:")
-        print(summarizer.summarize_day("20250707"))
 
-
-    
-        """
-        Process a single conversation: Transcribe, classify emotions, analyze sentiment, and summarize.
-
-        Args:
-            audio_frames (list): List of audio frames for the conversation.
-        """
-        # Save the audio frames to a temporary file
-        temp_audio_file = os.path.join(self.audio_recorder.output_folder, "temp_conversation.wav")
-        with wave.open(temp_audio_file, 'wb') as wf:
-            wf.setnchannels(self.audio_recorder.channels)
-            wf.setsampwidth(2)  # 16-bit audio
-            wf.setframerate(self.audio_recorder.rate)
-            wf.writeframes(b''.join(audio_frames))
-
-        # Transcribe the audio
-        print("\nTranscribing conversation...")
-        transcription_file = self.transcriber.transcribe_audio(temp_audio_file, self.output_dir)
-        if not transcription_file:
-            print("Transcription failed.")
-            return
-
-        # Classify emotions
-        print("\nClassifying emotions...")
-        emotion_classifier = EmotionClassifier(transcription_file)
-        emotion_results = emotion_classifier.classify_emotions()
-
-        # Analyze sentiment
-        print("\nAnalyzing sentiment...")
-        sentiment_analyzer = SentimentAnalyzer(transcription_file)
-        sentiment_scores = sentiment_analyzer.analyze_sentiment()
-
-        # Summarize conversation
-        print("\nSummarizing conversation...")
-        summarizer = ConversationSummarizer()
-        summary = summarizer.summarize_conversation(transcription_file, None, input_type="transcription")
-
-        # Save the summary
-        self.save_summary(summary)
-
-        # Print results
-        print("\nEmotion Results:")
-        for result_list in emotion_results:
-            for result in result_list:
-                print(f"Label: {result['label']}, Score: {result['score']}")
-
-        print("\nSentiment Scores:")
-        print(sentiment_scores)
-
-        print("\nSummary:")
-        print(summary)
      
     def process_conversation(self, audio_frames):
         """
@@ -256,5 +210,5 @@ class CustomerAuditPipeline:
 # Run the pipeline
 if __name__ == "__main__":
     pipeline = CustomerAuditPipeline()
-    # pipeline.run_pipeline()
-    pipeline.run_continuous_pipeline()
+    pipeline.run_pipeline() # For purpose of single run, of the pipeline
+    # pipeline.run_continuous_pipeline() # For continuous processing of conversations
