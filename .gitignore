@@ -11,5 +11,6 @@ data/
 recordings/
 transcripts/
 summaries/
+*.db
 
 __pycache__/
