@@ -8,6 +8,8 @@ multiple components to process customer interactions and generate insights.
 
 from datetime import datetime
 import os
+from dotenv import load_dotenv
+
 
 # Import pipeline components
 from audio_recorder import AudioRecorder
@@ -15,8 +17,14 @@ from emotion_classifier import EmotionClassifier
 from sentiment_analyzer import SentimentAnalyzer
 from transcriber import Transcriber
 from summarizer import ConversationSummarizer
+from api_uploader import get_token, post_conversation
+
 import wave
 import threading
+
+load_dotenv()
+EMAIL = os.getenv("EMAIL")
+PASSWORD = os.getenv("PASSWORD")
 
 
 class CustomerAuditPipeline:
@@ -105,6 +113,12 @@ class CustomerAuditPipeline:
         if not sentiment_scores:
             print("Sentiment analysis failed. Exiting pipeline.")
             return
+        
+        # Extract the highest sentiment (ignoring compound)
+        sentiment_label = max(
+            {key: value for key, value in sentiment_scores.items() if key in ["neg", "neu", "pos"]},
+            key=sentiment_scores.get
+        )
 
         # Step 5: Summarize conversation
         print("\nStep 5: Summarizing conversation...")
@@ -129,6 +143,26 @@ class CustomerAuditPipeline:
 
         print("\nSummary:")
         print(summary)
+
+        print("\nStep 6: Pushing Conversation to Database (TESTING)")
+        # Step 6: Pushing Conversation to Database (TESTING)
+        token = get_token(EMAIL, PASSWORD)
+        with open(transcription_file, "r", encoding="utf-8") as f:
+            transcript_text = f.read()
+
+        emotion_scores = {
+            e['label']: e['score']
+            for result_list in emotion_results for e in result_list
+        }
+
+        # Post to API
+        print("Uploading to backend...")
+        try:
+            convo = post_conversation(token, transcript_text, sentiment_label, emotion_scores, summary)
+            print("Uploaded conversation ID:", convo["id"])
+        except Exception as e:
+            print("Upload failed:", str(e))
+        
 
      
     def process_conversation(self, audio_frames):
