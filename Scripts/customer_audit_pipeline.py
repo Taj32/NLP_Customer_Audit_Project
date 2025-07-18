@@ -82,7 +82,7 @@ class CustomerAuditPipeline:
 
         # Step 2: Transcribe audio
         print("\nStep 2: Transcribing audio...")
-        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\Bladee.wav" # For testing purposes, remove later
+        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\lean_interview.wav" # For testing purposes, remove later
         os.makedirs(self.output_dir, exist_ok=True)
         transcription_file = self.transcriber.transcribe_audio(audio_file, self.output_dir)
         if not transcription_file:
@@ -150,10 +150,24 @@ class CustomerAuditPipeline:
         with open(transcription_file, "r", encoding="utf-8") as f:
             transcript_text = f.read()
 
+        # Extract top 5 emotion scores
         emotion_scores = {
             e['label']: e['score']
-            for result_list in emotion_results for e in result_list
+            for e in sorted(
+                [emotion for result_list in emotion_results for emotion in result_list],
+                key=lambda x: x['score'],
+                reverse=True
+            )[:5]  # Take the top 5 emotions
         }
+        
+        # Extract the highest sentiment (ignoring compound) and reword it
+        sentiment_mapping = {"neg": "negative", "neu": "neutral", "pos": "positive"}
+        sentiment_label = max(
+            {key: value for key, value in sentiment_scores.items() if key in sentiment_mapping},
+            key=sentiment_scores.get
+        )
+        sentiment_label = sentiment_mapping[sentiment_label]  # Map to full name
+
 
         # Post to API
         print("Uploading to backend...")

@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 function ConversationPage() {
   const { id } = useParams();
   const [convo, setConvo] = useState(null);
+  const [isTranscriptVisible, setIsTranscriptVisible] = useState(false); // State to toggle transcript visibility
 
   useEffect(() => {
     axios.get(`http://localhost:8000/conversations/${id}`, {
@@ -35,10 +36,31 @@ function ConversationPage() {
           ))}
         </ul>
 
-        <h3 className="font-semibold text-gray-800">Transcript</h3>
-        <pre className="bg-gray-100 p-4 rounded mt-2 text-sm whitespace-pre-wrap">
-          {convo.transcript}
-        </pre>
+        <div className="flex items-center justify-between mt-4">
+          <h3 className="font-semibold text-gray-800">Transcript</h3>
+          <button
+            className="flex items-center text-blue-600 hover:text-blue-800"
+            onClick={() => setIsTranscriptVisible(!isTranscriptVisible)} // Toggle visibility
+          >
+            {isTranscriptVisible ? "Hide" : "Show"}
+            <svg
+              className={`w-5 h-5 ml-2 transform transition-transform ${
+                isTranscriptVisible ? "rotate-180" : "rotate-0"
+              }`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+        {isTranscriptVisible && (
+          <pre className="bg-gray-100 p-4 rounded mt-2 text-sm whitespace-pre-wrap">
+            {convo.transcript}
+          </pre>
+        )}
       </div>
     </div>
   );
