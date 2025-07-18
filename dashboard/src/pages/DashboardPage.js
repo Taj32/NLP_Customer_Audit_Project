@@ -17,7 +17,15 @@ function DashboardPage() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }).then((res) => setConversations(res.data));
+      })
+      .then((res) => {
+        // Ensure conversations is always an array
+        setConversations(Array.isArray(res.data) ? res.data : []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch conversations:", err.response?.data || err.message);
+        setConversations([]); // Default to an empty array on error
+      });
   }, []);
 
   return (
@@ -25,15 +33,19 @@ function DashboardPage() {
       <Navbar />
       <div className="max-w-5xl mx-auto py-8 px-4">
         <h2 className="text-xl font-semibold mb-6 text-gray-800">Recent Conversations</h2>
-        <ul className="space-y-4">
-          {conversations.map((c) => (
-            <li key={c.id} className="bg-white p-4 shadow rounded hover:shadow-lg transition">
-              <a className="text-blue-700 font-medium" href={`/conversation/${c.id}`}>
-                Conversation {c.id} — {new Date(c.created_at).toLocaleDateString()}
-              </a>
-            </li>
-          ))}
-        </ul>
+        {conversations.length === 0 ? (
+          <p className="text-gray-600">No conversations found.</p>
+        ) : (
+          <ul className="space-y-4">
+            {conversations.map((c) => (
+              <li key={c.id} className="bg-white p-4 shadow rounded hover:shadow-lg transition">
+                <a className="text-blue-700 font-medium" href={`/conversation/${c.id}`}>
+                  Conversation {c.id} — {new Date(c.created_at).toLocaleDateString()}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

@@ -6,13 +6,19 @@ function LoginPage() {
   const [password, setPassword] = useState("");
 
   const login = async () => {
-    const res = await axios.post("http://localhost:8000/auth/login", {
-      email,
-      password
-    });
-    localStorage.setItem("token", res.data.access_token);
-    window.location.href = "/dashboard";
+    try {
+      const res = await axios.post("http://localhost:8000/auth/login", {
+        email,
+        password
+      });
+      localStorage.setItem("token", res.data.access_token);
+      window.location.href = "/dashboard";
+    } catch (err) {
+      alert("Login failed");
+      console.error(err.response?.data || err.message);
+    }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
