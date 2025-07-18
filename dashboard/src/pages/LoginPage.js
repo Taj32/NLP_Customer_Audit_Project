@@ -1,4 +1,3 @@
-// dashboard/src/pages/LoginPage.js
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -7,29 +6,39 @@ function LoginPage() {
   const [password, setPassword] = useState("");
 
   const login = async () => {
-    try {
-      const res = await axios.post(
-        "http://localhost:8000/auth/login",
-        { email, password },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      localStorage.setItem("token", `Bearer ${res.data.access_token}`); // Save the token with "Bearer" prefix
-      window.location.href = "/dashboard"; // Redirect to the dashboard
-    } catch (error) {
-      console.error("Login failed:", error.response?.data || error.message);
-    }
+    const res = await axios.post("http://localhost:8000/auth/login", {
+      email,
+      password
+    });
+    localStorage.setItem("token", res.data.access_token);
+    window.location.href = "/dashboard";
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <input placeholder="Password" type="password" onChange={(e) => setPassword(e.target.value)} />
-      <button onClick={login}>Login</button>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
+        <input
+          className="w-full border px-3 py-2 mb-4 rounded"
+          placeholder="Email"
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          className="w-full border px-3 py-2 mb-4 rounded"
+          placeholder="Password"
+          type="password"
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          onClick={login}
+        >
+          Login
+        </button>
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Don't have an account? <a className="text-blue-600" href="/register">Register</a>
+        </p>
+      </div>
     </div>
   );
 }

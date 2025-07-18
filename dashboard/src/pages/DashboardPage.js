@@ -1,55 +1,40 @@
-// dashboard/src/pages/DashboardPage.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Navbar from '../components/Navbar';
 
 function DashboardPage() {
   const [conversations, setConversations] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      console.error("No token found. Redirecting to login...");
-      window.location.href = "/login"; // Redirect to login if no token is found
+      window.location.href = "/";
       return;
     }
 
     axios
       .get("http://localhost:8000/conversations/", {
         headers: {
-          Authorization: token,
+          Authorization: `Bearer ${token}`,
         },
-      })
-      .then((res) => {
-        setConversations(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch conversations:", err.response?.data || err.message);
-        setLoading(false);
-        if (err.response?.status === 401) {
-          // Redirect to login if unauthorized
-          window.location.href = "/login";
-        }
-      });
+      }).then((res) => setConversations(res.data));
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <div>
-      <h2>Your Conversations</h2>
-      <ul>
-        {conversations.map((c) => (
-          <li key={c.id}>
-            <a href={`/conversation/${c.id}`}>
-              Conversation {c.id} - {new Date(c.created_at).toLocaleDateString()}
-            </a>
-          </li>
-        ))}
-      </ul>
+    <div className="bg-gray-50 min-h-screen">
+      <Navbar />
+      <div className="max-w-5xl mx-auto py-8 px-4">
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">Recent Conversations</h2>
+        <ul className="space-y-4">
+          {conversations.map((c) => (
+            <li key={c.id} className="bg-white p-4 shadow rounded hover:shadow-lg transition">
+              <a className="text-blue-700 font-medium" href={`/conversation/${c.id}`}>
+                Conversation {c.id} — {new Date(c.created_at).toLocaleDateString()}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
