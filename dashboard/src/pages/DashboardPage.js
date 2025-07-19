@@ -3,7 +3,6 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-
 function aggregateEmotions(conversations) {
   const totals = {};
 
@@ -14,7 +13,6 @@ function aggregateEmotions(conversations) {
     });
   });
 
-  // Optional: sort by score
   return Object.entries(totals)
     .map(([emotion, score]) => ({ emotion, score }))
     .sort((a, b) => b.score - a.score);
@@ -33,13 +31,13 @@ function aggregateSentiments(conversations) {
   return Object.entries(counts).map(([sentiment, count]) => ({ sentiment, count }));
 }
 
-
-
 function DashboardPage() {
   const [conversations, setConversations] = useState([]);
+  const [filteredConversations, setFilteredConversations] = useState([]); // State for filtered conversations
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
+
   const emotionData = aggregateEmotions(conversations);
   const sentimentData = aggregateSentiments(conversations);
-
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -55,14 +53,48 @@ function DashboardPage() {
         },
       })
       .then((res) => {
-        // Ensure conversations is always an array
-        setConversations(Array.isArray(res.data) ? res.data : []);
+        const data = Array.isArray(res.data) ? res.data : [];
+        setConversations(data);
+        setFilteredConversations(data); // Initially show all conversations
       })
       .catch((err) => {
         console.error("Failed to fetch conversations:", err.response?.data || err.message);
-        setConversations([]); // Default to an empty array on error
+        setConversations([]);
+        setFilteredConversations([]);
       });
   }, []);
+
+  // Update filtered conversations when the search query changes
+  useEffect(() => {
+    const normalizeString = (str) =>
+      str
+        ?.toLowerCase()
+        .replace(/[^a-z0-9\s]/gi, " ") // Replace special characters with spaces
+        .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+        .trim(); // Trim leading and trailing spaces
+
+    if (searchQuery.trim() === "") {
+      setFilteredConversations(conversations); // Show all conversations if the search query is empty
+    } else {
+      setFilteredConversations(
+        conversations.filter((c) => {
+          const conversationName = normalizeString(c.name || `Conversation ${c.id}`);
+          const transcript = normalizeString(c.transcript || "");
+          const summary = normalizeString(c.summary || "");
+          const sentiment = normalizeString(c.sentiment_score || "");
+          const normalizedQuery = normalizeString(searchQuery);
+
+          // Check if the query matches any of the fields
+          return (
+            conversationName.includes(normalizedQuery) ||
+            transcript.includes(normalizedQuery) ||
+            summary.includes(normalizedQuery) ||
+            sentiment.includes(normalizedQuery)
+          );
+        })
+      );
+    }
+  }, [searchQuery, conversations]);
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -108,17 +140,32 @@ function DashboardPage() {
 
       <div className="max-w-7xl mx-auto py-8 px-4">
         <h2 className="text-xl font-semibold mb-6 text-gray-800">Recent Conversations</h2>
-        {conversations.length === 0 ? (
+
+        {/* Search Bar */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search conversations by name, keywords, date, or sentiment..."
+            className="w-full p-2 border border-gray-300 rounded"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)} // Update search query
+          />
+        </div>
+
+        {filteredConversations.length === 0 ? (
           <p className="text-gray-600">No conversations found.</p>
         ) : (
           <ul className="space-y-4">
-            {conversations.map((c) => (
-              <li key={c.id} className="bg-white p-4 shadow rounded hover:shadow-lg transition">
-                <a className="text-blue-700 font-medium" href={`/conversation/${c.id}`}>
-                  Conversation {c.id} — {new Date(c.created_at).toLocaleDateString()}
-                </a>
-              </li>
-            ))}
+            {filteredConversations.map((c) => {
+              const conversationName = c.name || `Conversation ${c.id} - ${new Date(c.created_at).toLocaleDateString()} - ${new Date(c.created_at).toLocaleTimeString()}`;
+              return (
+                <li key={c.id} className="bg-white p-4 shadow rounded hover:shadow-lg transition">
+                  <a className="text-blue-700 font-medium" href={`/conversation/${c.id}`}>
+                    {conversationName}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
@@ -127,3 +174,4 @@ function DashboardPage() {
 }
 
 export default DashboardPage;
+
