@@ -35,6 +35,7 @@ function DashboardPage() {
   const [conversations, setConversations] = useState([]);
   const [filteredConversations, setFilteredConversations] = useState([]); // State for filtered conversations
   const [searchQuery, setSearchQuery] = useState(""); // State for search query
+  const [loading, setLoading] = useState(true); // State to track loading
 
   const emotionData = aggregateEmotions(conversations);
   const sentimentData = aggregateSentiments(conversations);
@@ -42,7 +43,7 @@ function DashboardPage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/";
+      window.location.href = "/"; // Redirect to login if no token is found
       return;
     }
 
@@ -56,11 +57,20 @@ function DashboardPage() {
         const data = Array.isArray(res.data) ? res.data : [];
         setConversations(data);
         setFilteredConversations(data); // Initially show all conversations
+        setLoading(false); // Set loading to false after data is fetched
       })
       .catch((err) => {
-        console.error("Failed to fetch conversations:", err.response?.data || err.message);
-        setConversations([]);
-        setFilteredConversations([]);
+        if (err.response && err.response.status === 401) {
+          // If the token is expired or invalid, log the user out
+          alert("Your session has expired. Please log in again.");
+          localStorage.removeItem("token"); // Remove the token from localStorage
+          window.location.href = "/"; // Redirect to login page
+        } else {
+          console.error("Failed to fetch conversations:", err.response?.data || err.message);
+          setConversations([]);
+          setFilteredConversations([]);
+          setLoading(false); // Set loading to false even if there's an error
+        }
       });
   }, []);
 
@@ -95,6 +105,11 @@ function DashboardPage() {
       );
     }
   }, [searchQuery, conversations]);
+
+  if (loading) {
+    // Show a loading spinner or placeholder while fetching data
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
