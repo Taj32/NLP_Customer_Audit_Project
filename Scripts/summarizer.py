@@ -22,55 +22,36 @@ class ConversationSummarizer:
         if torch.cuda.is_available():
             print("CUDA Device Name:", torch.cuda.get_device_name(0))
 
-        # Initialize GODEL summarization pipeline
-        model_name = "facebook/bart-large-cnn"
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-
+        # Initialize the LED summarization pipeline
+        model_name = "pszemraj/led-large-book-summary"
         self.summarizer = pipeline(
             "summarization",
-            model=model,
-            tokenizer=tokenizer,
-            device=0 if torch.cuda.is_available() else -1
+            model=model_name,
+            device=0 if torch.cuda.is_available() else -1  # Use GPU if available
         )
 
-    def summarize_conversation(self, input_path, output_dir, input_type="audio", sentiment_score=None, emotion_results=None):
-        transcript = None
-
-        if input_type == "audio":
-            print("Transcribing audio...")
-            transcription_file = self.transcriber.transcribe_audio(input_path, output_dir)
-            if not transcription_file:
-                print("Transcription failed.")
-                return None
-
-            with open(transcription_file, "r", encoding="utf-8") as f:
-                transcript = f.read()
-
-        elif input_type == "transcription":
-            print("Loading transcription...")
-            if not os.path.exists(input_path):
-                print(f"Transcription file not found: {input_path}")
-                return None
-
-            with open(input_path, "r", encoding="utf-8") as f:
-                transcript = f.read()
-        else:
-            print("Invalid input type. Please specify 'audio' or 'transcription'.")
+    def summarize_conversation(self, transcription_path, output_dir, input_type="audio"):
+        # Load and preprocess the transcription
+        if not os.path.exists(transcription_path):
+            print(f"Error: Transcription file not found at {transcription_path}")
             return None
 
-        # Optional: Replace speaker tags for clarity
-        transcript = transcript.replace("SPEAKER_00:", "Speaker A:")\
-                               .replace("SPEAKER_01:", "Speaker B:")\
-                               .replace("Speaker:", "Host:")
+        with open(transcription_path, "r", encoding="utf-8") as f:
+            transcript = f.read().strip()
 
+        if not transcript:
+            print("Error: Transcription file is empty.")
+            return None
+
+        # Preprocess the text for the LED model
+        transcript = self.preprocess_text(transcript)
+
+        # Generate the summary
+        print("---------------------")
+        print(transcript)
+        print("---------------------")
         print("Summarizing transcription...")
-        if sentiment_score is None or emotion_results is None:
-            print("independent...")
-            summary = self.generate_summary_independent(transcript)
-        else:
-            print("non-independent...")
-            summary = self.generate_summary(transcript, sentiment_score, emotion_results)
+        summary = self.generate_summary_independent(transcript)
 
         print("\n\n[[Summary]]:")
         print(summary)
@@ -158,7 +139,7 @@ class ConversationSummarizer:
 
     def generate_summary_independent(self, text):
         """
-        Generate a summary without sentiment or emotion metrics.
+        Generate a summary without sentiment or emotion metrics, with a length approximately 40-45% of the transcription.
 
         Args:
             text (str): The text to summarize.
@@ -168,56 +149,38 @@ class ConversationSummarizer:
         """
         print("Generating summary without sentiment or emotion metrics...")
 
-        # Step 1: Split the text into chunks and summarize each chunk
-        chunks = self.chunk_by_sentences(text)
-        chunk_summaries = []
-        for i, chunk in enumerate(chunks):
-            print(f"Summarizing chunk {i + 1}/{len(chunks)}...")
-            try:
-                output = self.summarizer(
-                    chunk,
-                    max_length=300,  # Adjust for longer summaries if needed
-                    min_length=100,
-                    do_sample=False
-                )[0]['summary_text']
-                chunk_summaries.append(output)
-            except Exception as e:
-                print(f"Error summarizing chunk {i + 1}: {str(e)}")
-                continue
+        # Ensure the input text is not empty
+        if not text.strip():
+            print("Error: Input text is empty.")
+            return "No content to summarize."
 
-        # Step 2: Combine all chunk summaries into a single text
-        combined_summary = " ".join(chunk_summaries)
-        print("Combined chunk summaries into a single text.")
+        # Calculate the target length for the summary
+        word_count = len(text.split())  # Count the number of words in the transcription
+        target_length = max(50, int(word_count * 0.3))  # Ensure a minimum target length of 50 words
+        max_length = min(1024, target_length + 50)  # Allow some flexibility above the target length
+        min_length = max(30, target_length - 50)  # Ensure a minimum length of 30 words
 
-        # Step 3: Deduplicate the combined summary
-        deduplicated_summary = self.deduplicate_summary(combined_summary)
-        print("Deduplicated the combined summary.")
+        print(f"Word count: {word_count}, Target length: {target_length} words")
+        print(f"Summarization parameters -> min_length: {min_length}, max_length: {max_length}")
 
-        # Step 4: Perform a final summarization on the combined summary
-        print("Performing a final summarization on the combined summary...")
+        # Perform summarization using the LED model
         try:
-            # Calculate the target length for the summary (40% of the deduplicated summary length)
-            deduplicated_length = len(deduplicated_summary.split())  # Word count of deduplicated summary
-            target_length = max(50, int(deduplicated_length * 0.4))  # Ensure a minimum target length of 50 words
-
-            # Set max_length and min_length dynamically
-            max_length = min(900, target_length + 50)  # Allow some flexibility above the target length
-            min_length = max(30, target_length - 50)  # Ensure a minimum length of 30 words
-
-            print(f"Target length: {target_length} words, max_length: {max_length}, min_length: {min_length}")
-
-            # Perform the final summarization
+            print("Summarizing the transcription...")
             final_summary = self.summarizer(
-                deduplicated_summary,
-                max_length=max_length,
+                text,
                 min_length=min_length,
-                do_sample=False
+                max_length=max_length,
+                no_repeat_ngram_size=4,
+                encoder_no_repeat_ngram_size=3,
+                repetition_penalty=3.5,
+                num_beams=4,
+                early_stopping=True
             )[0]['summary_text']
         except Exception as e:
-            print(f"Error during final summarization: {str(e)}")
-            final_summary = deduplicated_summary  # Fallback to the deduplicated summary
+            print(f"Error during summarization: {str(e)}")
+            final_summary = "Summarization failed due to an error."
 
-        # Step 5: Clean and return the final summary
+        # Clean and return the final summary
         return self.clean_summary(final_summary)
         
     def chunk_by_sentences(self, text, max_chars=1024):
@@ -290,6 +253,25 @@ class ConversationSummarizer:
         cleaned_transcript = " ".join(cleaned_transcript.split())
 
         return cleaned_transcript
+
+    def preprocess_text(self, text, max_tokens=16384):
+        """
+        Preprocess the text to ensure it fits within the model's token limit.
+
+        Args:
+            text (str): The input text.
+            max_tokens (int): Maximum number of tokens allowed by the model.
+
+        Returns:
+            str: The truncated text.
+        """
+        tokenized_input = self.summarizer.tokenizer(
+            text,
+            truncation=True,
+            max_length=max_tokens,
+            return_tensors="pt"
+        )
+        return self.summarizer.tokenizer.decode(tokenized_input["input_ids"][0], skip_special_tokens=True)
 
 
 if __name__ == "__main__":

@@ -82,7 +82,7 @@ class CustomerAuditPipeline:
 
         # Step 2: Transcribe audio
         print("\nStep 2: Transcribing audio...")
-        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\lean_interview.wav" # For testing purposes, remove later
+        audio_file = r"D:\Python Projects\NLP_Customer_Audit_Project\recordings\joe_rogan_15_wav.wav" # For testing purposes, remove later
         os.makedirs(self.output_dir, exist_ok=True)
         transcription_file = self.transcriber.transcribe_audio(audio_file, self.output_dir)
         if not transcription_file:
