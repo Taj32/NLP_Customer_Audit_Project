@@ -9,16 +9,36 @@ function ConversationPage() {
   const [convo, setConvo] = useState(null);
   const [isTranscriptVisible, setIsTranscriptVisible] = useState(false); // State to toggle transcript visibility
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [loading, setLoading] = useState(true); // State to track loading
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/"; // Redirect to login if no token is found
+      return;
+    }
+
     axios
       .get(`http://localhost:8000/conversations/${id}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
       })
-      .then((res) => setConvo(res.data))
-      .catch((err) => console.error("Failed to fetch conversation:", err));
+      .then((res) => {
+        setConvo(res.data);
+        setLoading(false); // Set loading to false after data is fetched
+      })
+      .catch((err) => {
+        if (err.response && err.response.status === 401) {
+          // If the token is expired or invalid, log the user out
+          alert("Your session has expired. Please log in again.");
+          localStorage.removeItem("token"); // Remove the token from localStorage
+          window.location.href = "/"; // Redirect to login page
+        } else {
+          console.error("Failed to fetch conversation:", err.response?.data || err.message);
+          setLoading(false); // Set loading to false even if there's an error
+        }
+      });
   }, [id]);
 
   const handleDelete = async () => {
@@ -36,7 +56,9 @@ function ConversationPage() {
     }
   };
 
-  if (!convo) return <div className="p-4">Loading...</div>;
+  if (loading) return <div className="p-4">Loading...</div>;
+
+  if (!convo) return <div className="p-4">Conversation not found.</div>;
 
   return (
     <div className="bg-gray-50 min-h-screen">

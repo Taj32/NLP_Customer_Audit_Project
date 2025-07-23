@@ -14,3 +14,4 @@ summaries/
 *.db
 
 __pycache__/
+script_progress.log

@@ -9,6 +9,8 @@ multiple components to process customer interactions and generate insights.
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import wave
+import threading
 
 
 # Import pipeline components
@@ -19,12 +21,10 @@ from transcriber import Transcriber
 from summarizer import ConversationSummarizer
 from api_uploader import get_token, post_conversation
 
-import wave
-import threading
-
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
+huggingface_token = os.getenv("HUGGINGFACE_TOKEN")
 
 
 class CustomerAuditPipeline:
@@ -88,7 +88,7 @@ class CustomerAuditPipeline:
         if not transcription_file:
             print("Transcription failed. Exiting pipeline.")
             return
-
+        
         # Check if the transcription is empty (ignoring separator and timestamp)
         with open(transcription_file, "r", encoding="utf-8") as f:
             transcription_lines = f.readlines()
