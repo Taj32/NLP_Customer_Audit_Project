@@ -12,6 +12,13 @@ recordings/
 transcripts/
 summaries/
 *.db
+*.sql
+supabase
 
 __pycache__/
 script_progress.log
+
+
+#temporarily git ignoring these:
+scripts/
+dashboard/
