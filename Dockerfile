@@ -12,13 +12,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements file into the container
-COPY requirements.txt .
+COPY backend/requirements.txt ./requirements.txt
 
 # Install dependencies
+#RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code into the container
-COPY . .
+COPY backend ./backend
 
 # Expose the port that the FastAPI app will run on
 EXPOSE 8000
