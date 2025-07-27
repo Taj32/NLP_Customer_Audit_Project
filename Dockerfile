@@ -14,7 +14,7 @@ RUN python -m venv /opt/venv \
  && pip install --no-cache-dir -r requirements.txt
 
 # Copy the backend source code into the container
-COPY app/ ./app/
+COPY backend/ ./backend/
 
 # Expose the FastAPI port
 EXPOSE 8000
