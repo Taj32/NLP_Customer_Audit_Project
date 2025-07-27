@@ -2,7 +2,7 @@
 FROM python:3.12-slim
 
 # Set the working directory inside the container
-WORKDIR /app
+WORKDIR /backend
 
 # Copy the requirements.txt file from the backend folder
 #COPY requirements.txt .
@@ -23,4 +23,4 @@ COPY backend/ ./backend/
 EXPOSE 8000
 
 # Run the FastAPI app using Uvicorn
-CMD ["/opt/venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/opt/venv/bin/uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
