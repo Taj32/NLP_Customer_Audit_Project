@@ -9,9 +9,10 @@ COPY requirements.txt .
 
 # Install Python dependencies
 RUN python -m venv /opt/venv \
- && . /opt/venv/bin/activate \
  && pip install --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
+
+ 
 
 # Copy the backend source code into the container
 COPY backend/ ./backend/
