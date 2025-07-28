@@ -101,6 +101,8 @@ RUN python -m venv /opt/venv \
 
 # Copy the entire backend directory to maintain structure
 COPY backend/ ./
+COPY backend/setup.py .
+
 
 ENV PATH="/opt/venv/bin:$PATH"
 
