@@ -80,7 +80,8 @@ RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install --upgrade pip \
  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-COPY backend/app/ ./app/
+# Copy the entire backend directory to maintain structure
+COPY backend/ ./
 
 ENV PATH="/opt/venv/bin:$PATH"
 
