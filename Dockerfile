@@ -40,32 +40,50 @@
 # CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 
-# Use a lightweight Python image
+# # Use a lightweight Python image
+# FROM python:3.12-slim
+
+# # Set the working directory inside the container to /backend
+# WORKDIR /backend
+
+# #COPY backend/requirements.txt .
+# COPY backend/ ./
+
+
+# # Install Python dependencies inside a virtual environment
+# RUN python -m venv /opt/venv \
+#  && /opt/venv/bin/pip install --upgrade pip \
+#  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# # Copy only the FastAPI backend code (requirements + app + create_db.py)
+# #COPY backend/app ./app
+# #COPY backend/create_db.py .
+# #COPY create_db.py .  # optional — only if needed at runtime
+
+# # Expose the FastAPI port
+# EXPOSE 8000
+
+# # Use the virtual environment's path
+# ENV PATH="/opt/venv/bin:$PATH"
+
+# # Run the FastAPI app
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
 FROM python:3.12-slim
 
-# Set the working directory inside the container to /backend
-WORKDIR /backend
+WORKDIR /app
 
-#COPY backend/requirements.txt .
-COPY backend/ ./
+COPY backend/requirements.txt .
 
-
-# Install Python dependencies inside a virtual environment
 RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install --upgrade pip \
  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-# Copy only the FastAPI backend code (requirements + app + create_db.py)
-#COPY backend/app ./app
-#COPY backend/create_db.py .
-#COPY create_db.py .  # optional — only if needed at runtime
+COPY backend/app/ ./app/
 
-# Expose the FastAPI port
-EXPOSE 8000
-
-# Use the virtual environment's path
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Run the FastAPI app
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8000
 
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
