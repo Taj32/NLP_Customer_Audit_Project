@@ -1,8 +1,9 @@
+
 # backend/app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import auth_routes
-from app.routes import convo_routes
+from routes import auth_routes
+from routes import convo_routes
 
 app = FastAPI()
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
-from app.database import SessionLocal
-from app.models import Conversation, User
+from database import SessionLocal
+from models import Conversation, User
 from jose import jwt
 from pydantic import BaseModel
 from datetime import datetime

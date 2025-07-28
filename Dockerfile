@@ -89,23 +89,46 @@
 
 # CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
+# FROM python:3.12-slim
+
+# WORKDIR /app
+
+# COPY backend/requirements.txt .
+
+# RUN python -m venv /opt/venv \
+#  && /opt/venv/bin/pip install --upgrade pip \
+#  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# # Copy the entire backend directory to maintain structure
+# COPY backend/app ./app
+
+
+# ENV PATH="/opt/venv/bin:$PATH"
+
+# EXPOSE 8000
+
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
 FROM python:3.12-slim
 
 WORKDIR /app
 
+# Copy requirements first
 COPY backend/requirements.txt .
 
+# Install dependencies
 RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install --upgrade pip \
  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire backend directory to maintain structure
-COPY backend/ ./
-COPY backend/setup.py .
-
+# Copy only the app directory contents to root
+COPY backend/app/ ./
 
 ENV PATH="/opt/venv/bin:$PATH"
 
+# Set the DATABASE_URL environment variable
+ENV DATABASE_URL="postgresql://postgres.csefhrecxaoyncdcdqdu:Easd17527!321@aws-0-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require"
+
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,8 +1,8 @@
 # backend/app/routes/auth_routes.py
 from fastapi import APIRouter, HTTPException
-from app.models import User
-from app.database import SessionLocal
-from app.auth import hash_password, verify_password, create_token
+from models import User
+from database import SessionLocal  
+from auth import hash_password, verify_password, create_token
 from pydantic import BaseModel, EmailStr
 
 router = APIRouter()
@@ -38,3 +38,4 @@ def login_user(data: LoginRequest):
         raise HTTPException(400, detail="Invalid credentials")
     token = create_token({"sub": str(user.id)})
     return {"access_token": token}
+
