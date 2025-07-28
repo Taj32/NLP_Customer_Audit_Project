@@ -21,7 +21,7 @@ script_progress.log
 
 
 #temporarily git ignoring these:
-scripts/
-dashboard/
-docker-compose.yml
+# scripts/
+# dashboard/
+# docker-compose.yml
 
