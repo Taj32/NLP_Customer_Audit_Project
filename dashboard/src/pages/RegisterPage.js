@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+
+
 function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -8,7 +11,8 @@ function RegisterPage() {
 
   const register = async () => {
     try {
-      await axios.post("http://localhost:8000/auth/register", {
+      await axios.post(
+        `${REACT_APP_API_URL}/auth/register`, {
         email,
         password,
         business_name: businessName

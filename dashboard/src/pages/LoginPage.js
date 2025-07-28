@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+//console.log(API_URL)
+
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  
+
   const login = async () => {
     try {
-      const res = await axios.post("http://localhost:8000/auth/login", {
+      console.log("API URL:", REACT_APP_API_URL);
+      const res = await axios.post(`${REACT_APP_API_URL}/auth/login`, {
         email,
         password
       });

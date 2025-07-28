@@ -3,6 +3,9 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+
+
 function aggregateEmotions(conversations) {
   const totals = {};
 
@@ -47,8 +50,11 @@ function DashboardPage() {
       return;
     }
 
+    //const token = localStorage.getItem("token");
+    console.log("Token:", token);
+
     axios
-      .get("http://localhost:8000/conversations/", {
+      .get(`${REACT_APP_API_URL}/conversations`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

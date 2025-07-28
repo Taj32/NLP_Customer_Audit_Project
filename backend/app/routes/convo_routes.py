@@ -34,6 +34,7 @@ class ConversationRequest(BaseModel):
 ## List all conversations for the authenticated user
 @router.get("/")
 def list_conversations(authorization: str = Header(...)):
+    print(f"Authorization Header: {authorization}")  # Debug log
     try:
         # Extract the token from the "Bearer <token>" format
         token = authorization.split(" ")[1]

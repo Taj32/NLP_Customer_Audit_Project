@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+
+
 function ConversationPage() {
   const { id } = useParams();
   const navigate = useNavigate(); // For navigation after deletion
@@ -19,7 +22,7 @@ function ConversationPage() {
     }
 
     axios
-      .get(`http://localhost:8000/conversations/${id}`, {
+      .get(`${REACT_APP_API_URL}/conversations/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -43,7 +46,7 @@ function ConversationPage() {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8000/conversations/${id}`, {
+      await axios.delete(`${REACT_APP_API_URL}/conversations/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
