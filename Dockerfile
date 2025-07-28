@@ -70,6 +70,25 @@
 # CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 
+# FROM python:3.12-slim
+
+# WORKDIR /app
+
+# COPY backend/requirements.txt .
+
+# RUN python -m venv /opt/venv \
+#  && /opt/venv/bin/pip install --upgrade pip \
+#  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# # Copy the entire backend directory to maintain structure
+# COPY backend/ ./
+
+# ENV PATH="/opt/venv/bin:$PATH"
+
+# EXPOSE 8000
+
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
 FROM python:3.12-slim
 
 WORKDIR /app
