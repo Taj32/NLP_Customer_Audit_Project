@@ -5,7 +5,7 @@ FROM python:3.12-slim
 WORKDIR /backend
 
 # Copy the requirements.txt file from the backend folder
-COPY backend/requirements.txt .
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN python -m venv /opt/venv \
