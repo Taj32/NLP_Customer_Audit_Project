@@ -49,7 +49,7 @@ WORKDIR /backend
 # Copy only the FastAPI backend code (requirements + app + create_db.py)
 COPY backend/requirements.txt .
 COPY backend/app ./app
-COPY backend/create_db.py .
+#COPY backend/create_db.py .
 #COPY create_db.py .  # optional — only if needed at runtime
 
 # Install Python dependencies inside a virtual environment
