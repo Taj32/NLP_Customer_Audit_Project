@@ -128,7 +128,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Set the DATABASE_URL environment variable
 # Use an ARG to pass the DATABASE_URL during build time
-ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
 
 EXPOSE 8000
