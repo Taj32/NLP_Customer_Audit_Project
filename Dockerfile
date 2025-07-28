@@ -22,4 +22,4 @@ EXPOSE 8000
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Run the FastAPI app using Uvicorn
-CMD ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/opt/venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
