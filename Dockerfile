@@ -127,7 +127,9 @@ COPY backend/app/ ./
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Set the DATABASE_URL environment variable
-ENV DATABASE_URL="postgresql://postgres.csefhrecxaoyncdcdqdu:Easd17527!321@aws-0-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require"
+# Use an ARG to pass the DATABASE_URL during build time
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
 
 EXPOSE 8000
 
