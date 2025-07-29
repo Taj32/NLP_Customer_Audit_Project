@@ -5,8 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes import auth_routes
 from routes import convo_routes
 import os
+from dotenv import load_dotenv
 
 app = FastAPI()
+load_dotenv()
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
 
