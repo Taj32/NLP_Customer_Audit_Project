@@ -45,16 +45,14 @@ function DashboardPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    console.log("Token:", token); // Debug log
     if (!token) {
       window.location.href = "/"; // Redirect to login if no token is found
       return;
     }
 
-    //const token = localStorage.getItem("token");
-    console.log("Token:", token);
-
     axios
-      .get(`${REACT_APP_API_URL}/conversations`, {
+      .get(`${REACT_APP_API_URL}/conversations/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -67,7 +65,6 @@ function DashboardPage() {
       })
       .catch((err) => {
         if (err.response && err.response.status === 401) {
-          // If the token is expired or invalid, log the user out
           alert("Your session has expired. Please log in again.");
           localStorage.removeItem("token"); // Remove the token from localStorage
           window.location.href = "/"; // Redirect to login page
