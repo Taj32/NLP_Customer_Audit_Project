@@ -15,7 +15,10 @@ ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=[ALLOWED_ORIGINS, 
+        "https://nlp-customer-audit-project.vercel.app",  # Production Vercel domain
+        "https://nlp-customer-audit-project-db3b3wk03-taj32s-projects.vercel.app"  # Temporary Vercel deployment domain
+        ],
     allow_credentials=True,  # Allow cookies to be sent with requests
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, OPTIONS, etc.)
     allow_headers=["*"],  # Allow all headers
