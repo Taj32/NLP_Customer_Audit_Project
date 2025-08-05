@@ -26,4 +26,4 @@ app.include_router(convo_routes.router, prefix="/conversations")
 
 @app.get("/")
 def root():
-    return {"message": "API is up!"}
+    return {"message": "API is up"}
