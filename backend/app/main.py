@@ -17,7 +17,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[ALLOWED_ORIGINS, 
         "https://nlp-customer-audit-project.vercel.app",  # Production Vercel domain
-        "https://nlp-customer-audit-project-db3b3wk03-taj32s-projects.vercel.app"  # Temporary Vercel deployment domain
+        "https://nlp-customer-audit-project-db3b3wk03-taj32s-projects.vercel.app",
+        "https://nlp-customer-audit-project-b6aw1d238-taj32s-projects.vercel.app/",
+        # Temporary Vercel deployment domain
         ],
     allow_credentials=True,  # Allow cookies to be sent with requests
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, OPTIONS, etc.)
