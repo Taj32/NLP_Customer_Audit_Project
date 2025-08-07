@@ -1,0 +1,21 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tech background -->
+  <circle cx="50" cy="50" r="45" fill="#1e40af"/>
+  
+  <!-- Subtle binary pattern (reduced opacity for clarity) -->
+  <g fill="#3b82f6" opacity="0.2" font-family="monospace" font-size="8">
+    <!-- Horizontal binary rows -->
+    <text x="10" y="20">10110 01001</text>
+    <text x="10" y="40">11010 00111</text>
+    <text x="10" y="60">01110 10101</text>
+    <text x="10" y="80">10011 01100</text>
+    <!-- Vertical binary (rotated) -->
+    <text transform="rotate(90 20 50)" x="20" y="50">1011 0101</text>
+    <text transform="rotate(-90 80 50)" x="80" y="50">1101 0010</text>
+  </g>
+  
+  <!-- Larger microphone (now the dominant element) -->
+  <rect x="40" y="25" width="20" height="30" rx="10" fill="white"/>
+  <line x1="50" y1="55" x2="50" y2="70" stroke="white" stroke-width="4"/>
+  <line x1="35" y1="70" x2="65" y2="70" stroke="white" stroke-width="4"/>
+</svg>

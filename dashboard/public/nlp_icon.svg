@@ -1,0 +1,50 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tech background -->
+  <circle cx="50" cy="50" r="45" fill="#1e40af"/>
+  
+  <!-- Clipping mask for circle -->
+  <defs>
+    <clipPath id="circleClip">
+      <circle cx="50" cy="50" r="45"/>
+    </clipPath>
+  </defs>
+  
+  <!-- Dense binary pattern clipped to circle -->
+  <g clip-path="url(#circleClip)">
+    <text x="15" y="18" fill="#3b82f6" font-size="6" opacity="0.4" font-family="monospace">10110</text>
+    <text x="62" y="18" fill="#3b82f6" font-size="6" opacity="0.4" font-family="monospace">01001</text>
+    <text x="12" y="28" fill="#3b82f6" font-size="6" opacity="0.3" font-family="monospace">11010</text>
+    <text x="68" y="28" fill="#3b82f6" font-size="6" opacity="0.3" font-family="monospace">00111</text>
+    <text x="18" y="38" fill="#3b82f6" font-size="6" opacity="0.5" font-family="monospace">01110</text>
+    <text x="64" y="38" fill="#3b82f6" font-size="6" opacity="0.5" font-family="monospace">10101</text>
+    
+    <text x="12" y="72" fill="#3b82f6" font-size="6" opacity="0.3" font-family="monospace">11001</text>
+    <text x="68" y="72" fill="#3b82f6" font-size="6" opacity="0.3" font-family="monospace">00110</text>
+    <text x="15" y="82" fill="#3b82f6" font-size="6" opacity="0.4" font-family="monospace">10011</text>
+    <text x="62" y="82" fill="#3b82f6" font-size="6" opacity="0.4" font-family="monospace">01100</text>
+    <text x="18" y="92" fill="#3b82f6" font-size="6" opacity="0.5" font-family="monospace">11100</text>
+    <text x="64" y="92" fill="#3b82f6" font-size="6" opacity="0.5" font-family="monospace">00010</text>
+    
+    <!-- Vertical binary strings -->
+    <g transform="rotate(90 28 50)">
+      <text x="28" y="18" fill="#3b82f6" font-size="6" opacity="0.3" font-family="monospace">1011</text>
+      <text x="28" y="28" fill="#3b82f6" font-size="6" opacity="0.4" font-family="monospace">0101</text>
+      <text x="28" y="72" fill="#3b82f6" font-size="6" opacity="0.4" font-family="monospace">1100</text>
+      <text x="28" y="82" fill="#3b82f6" font-size="6" opacity="0.3" font-family="monospace">0011</text>
+    </g>
+    
+    <g transform="rotate(-90 72 50)">
+      <text x="72" y="18" fill="#3b82f6" font-size="6" opacity="0.3" font-family="monospace">1101</text>
+      <text x="72" y="28" fill="#3b82f6" font-size="6" opacity="0.4" font-family="monospace">0010</text>
+      <text x="72" y="72" fill="#3b82f6" font-size="6" opacity="0.4" font-family="monospace">1001</text>
+      <text x="72" y="82" fill="#3b82f6" font-size="6" opacity="0.3" font-family="monospace">0110</text>
+    </g>
+  </g>
+  
+  <!-- Plain white filled microphone -->
+  <rect x="44" y="32" width="12" height="24" rx="6" fill="white"/>
+  
+  <!-- Simple stand -->
+  <line x1="50" y1="56" x2="50" y2="68" stroke="white" stroke-width="3"/>
+  <line x1="40" y1="68" x2="60" y2="68" stroke="white" stroke-width="3"/>
+</svg>
