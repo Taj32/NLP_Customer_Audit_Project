@@ -21,6 +21,7 @@ app.add_middleware(
         "https://nlp-customer-audit-project-b6aw1d238-taj32s-projects.vercel.app/",
         "https://conversight.vercel.app/",
         "https://conversight.vercel.app",
+        "http://localhost:3000",
         # Temporary Vercel deployment domain
         ],
     allow_credentials=True,  # Allow cookies to be sent with requests

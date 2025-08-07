@@ -5,7 +5,6 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
-
 function aggregateEmotions(conversations) {
   const totals = {};
 
@@ -36,18 +35,18 @@ function aggregateSentiments(conversations) {
 
 function DashboardPage() {
   const [conversations, setConversations] = useState([]);
-  const [filteredConversations, setFilteredConversations] = useState([]); // State for filtered conversations
-  const [searchQuery, setSearchQuery] = useState(""); // State for search query
-  const [loading, setLoading] = useState(true); // State to track loading
+  const [filteredConversations, setFilteredConversations] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [businessName, setBusinessName] = useState(""); // State for business name
 
   const emotionData = aggregateEmotions(conversations);
   const sentimentData = aggregateSentiments(conversations);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    console.log("Token:", token); // Debug log
     if (!token) {
-      window.location.href = "/"; // Redirect to login if no token is found
+      window.location.href = "/";
       return;
     }
 
@@ -60,34 +59,39 @@ function DashboardPage() {
       .then((res) => {
         const data = Array.isArray(res.data) ? res.data : [];
         setConversations(data);
-        setFilteredConversations(data); // Initially show all conversations
-        setLoading(false); // Set loading to false after data is fetched
+        setFilteredConversations(data);
+
+        // Extract business_name from the first conversation (assuming all belong to the same business)
+        if (data.length > 0 && data[0].user && data[0].user.business_name) {
+          setBusinessName(data[0].user.business_name);
+        }
+
+        setLoading(false);
       })
       .catch((err) => {
         if (err.response && err.response.status === 401) {
           alert("Your session has expired. Please log in again.");
-          localStorage.removeItem("token"); // Remove the token from localStorage
-          window.location.href = "/"; // Redirect to login page
+          localStorage.removeItem("token");
+          window.location.href = "/";
         } else {
           console.error("Failed to fetch conversations:", err.response?.data || err.message);
           setConversations([]);
           setFilteredConversations([]);
-          setLoading(false); // Set loading to false even if there's an error
+          setLoading(false);
         }
       });
   }, []);
 
-  // Update filtered conversations when the search query changes
   useEffect(() => {
     const normalizeString = (str) =>
       str
         ?.toLowerCase()
-        .replace(/[^a-z0-9\s]/gi, " ") // Replace special characters with spaces
-        .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-        .trim(); // Trim leading and trailing spaces
+        .replace(/[^a-z0-9\s]/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
     if (searchQuery.trim() === "") {
-      setFilteredConversations(conversations); // Show all conversations if the search query is empty
+      setFilteredConversations(conversations);
     } else {
       setFilteredConversations(
         conversations.filter((c) => {
@@ -97,7 +101,6 @@ function DashboardPage() {
           const sentiment = normalizeString(c.sentiment_score || "");
           const normalizedQuery = normalizeString(searchQuery);
 
-          // Check if the query matches any of the fields
           return (
             conversationName.includes(normalizedQuery) ||
             transcript.includes(normalizedQuery) ||
@@ -110,7 +113,6 @@ function DashboardPage() {
   }, [searchQuery, conversations]);
 
   if (loading) {
-    // Show a loading spinner or placeholder while fetching data
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
@@ -118,10 +120,14 @@ function DashboardPage() {
     <div className="bg-gray-50 min-h-screen">
       <Navbar />
       <div className="px-6 py-4">
+        {/* Greeting Section */}
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+          Hello, {businessName || "User"}!
+        </h2>
+
         <h3 className="text-2xl font-semibold mb-4 text-gray-800">Insights</h3>
 
         <div className="flex flex-wrap gap-4">
-          {/* Emotion Chart */}
           <div className="flex-1 min-w-[300px] h-[400px] bg-white p-4 shadow rounded">
             <h4 className="text-lg font-semibold mb-2">Common Emotions</h4>
             <ResponsiveContainer width="100%" height="90%">
@@ -141,7 +147,6 @@ function DashboardPage() {
             </ResponsiveContainer>
           </div>
 
-          {/* Sentiment Chart */}
           <div className="flex-1 min-w-[300px] h-[400px] bg-white p-4 shadow rounded">
             <h4 className="text-lg font-semibold mb-2">Sentiment Distribution</h4>
             <ResponsiveContainer width="100%" height="90%">
@@ -159,14 +164,13 @@ function DashboardPage() {
       <div className="max-w-7xl mx-auto py-8 px-4">
         <h2 className="text-xl font-semibold mb-6 text-gray-800">Recent Conversations</h2>
 
-        {/* Search Bar */}
         <div className="mb-4">
           <input
             type="text"
             placeholder="Search conversations by name, keywords, date, or sentiment..."
             className="w-full p-2 border border-gray-300 rounded"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // Update search query
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
@@ -175,7 +179,11 @@ function DashboardPage() {
         ) : (
           <ul className="space-y-4">
             {filteredConversations.map((c) => {
-              const conversationName = c.name || `Conversation ${c.id} - ${new Date(c.created_at).toLocaleDateString()} - ${new Date(c.created_at).toLocaleTimeString()}`;
+              const conversationName =
+                c.name ||
+                `Conversation ${c.id} - ${new Date(c.created_at).toLocaleDateString()} - ${new Date(
+                  c.created_at
+                ).toLocaleTimeString()}`;
               return (
                 <li key={c.id} className="bg-white p-4 shadow rounded hover:shadow-lg transition">
                   <a className="text-blue-700 font-medium" href={`/conversation/${c.id}`}>
