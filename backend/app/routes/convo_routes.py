@@ -5,11 +5,14 @@ from models import Conversation, User
 from jose import jwt
 from pydantic import BaseModel
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
 # Initialize the router
 router = APIRouter()
 
-SECRET_KEY = "supersecret"
+load_dotenv() 
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret")
 ALGORITHM = "HS256"
 
 # Helper function to decode the JWT token and get the user ID

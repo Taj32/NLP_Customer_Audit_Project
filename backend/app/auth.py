@@ -2,8 +2,12 @@
 from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
+import os
+from dotenv import load_dotenv
 
-SECRET_KEY = "supersecret"
+load_dotenv() 
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret")
+#SECRET_KEY = "supersecret"
 ALGORITHM = "HS256"
 EXPIRE_MINUTES = 30
 

@@ -50,6 +50,26 @@ function DashboardPage() {
       return;
     }
 
+    // Fetch business name from /auth/account
+    axios
+      .get(`${REACT_APP_API_URL}/auth/account`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        setBusinessName(res.data.business_name || "User");
+      })
+      .catch((err) => {
+        console.error("Failed to fetch account info:", err.response?.data || err.message);
+        if (err.response && err.response.status === 401) {
+          alert("Your session has expired. Please log in again.");
+          localStorage.removeItem("token");
+          window.location.href = "/";
+        }
+      });
+
+    // Fetch conversations
     axios
       .get(`${REACT_APP_API_URL}/conversations/`, {
         headers: {
@@ -60,25 +80,13 @@ function DashboardPage() {
         const data = Array.isArray(res.data) ? res.data : [];
         setConversations(data);
         setFilteredConversations(data);
-
-        // Extract business_name from the first conversation (assuming all belong to the same business)
-        if (data.length > 0 && data[0].user && data[0].user.business_name) {
-          setBusinessName(data[0].user.business_name);
-        }
-
         setLoading(false);
       })
       .catch((err) => {
-        if (err.response && err.response.status === 401) {
-          alert("Your session has expired. Please log in again.");
-          localStorage.removeItem("token");
-          window.location.href = "/";
-        } else {
-          console.error("Failed to fetch conversations:", err.response?.data || err.message);
-          setConversations([]);
-          setFilteredConversations([]);
-          setLoading(false);
-        }
+        console.error("Failed to fetch conversations:", err.response?.data || err.message);
+        setConversations([]);
+        setFilteredConversations([]);
+        setLoading(false);
       });
   }, []);
 
@@ -122,7 +130,7 @@ function DashboardPage() {
       <div className="px-6 py-4">
         {/* Greeting Section */}
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-          Hello, {businessName || "User"}!
+          Hello, {businessName}!
         </h2>
 
         <h3 className="text-2xl font-semibold mb-4 text-gray-800">Insights</h3>
