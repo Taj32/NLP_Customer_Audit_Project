@@ -8,8 +8,8 @@ function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Hero Section */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <header className="bg-white shadow flex items-center justify-center">
+        <div className="py-6 px-4">
           <h1 className="text-3xl font-bold text-gray-900">Conversight</h1>
         </div>
       </header>
@@ -46,7 +46,7 @@ function LandingPage() {
                 onClick={() => navigate('/login')}
                 className="bg-white text-blue-700 font-semibold py-3 px-8 rounded-lg shadow hover:bg-gray-100"
               >
-                Get Started
+                Log In
               </button>
               <button
                 onClick={() => window.open('mailto:contact@conversight.ai')}
