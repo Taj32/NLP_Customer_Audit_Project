@@ -7,6 +7,9 @@ from pydantic import BaseModel, EmailStr
 from jose import jwt
 import os
 from dotenv import load_dotenv
+from itsdangerous.url_safe import URLSafeTimedSerializer
+import smtplib
+from email.mime.text import MIMEText
 
 router = APIRouter()
 load_dotenv()  # Load environment variables from .env
@@ -14,10 +17,42 @@ load_dotenv()  # Load environment variables from .env
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret")  # Use fallback for safety
 ALGORITHM = "HS256"
 
+EMAIL_SENDER = os.getenv("EMAIL_SENDER")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
     business_name: str
+
+# Generate verification token
+def generate_verification_token(email):
+    serializer = URLSafeTimedSerializer(SECRET_KEY)
+    return serializer.dumps(email, salt="email-verification")
+
+# Verify token
+def verify_token(token):
+    serializer = URLSafeTimedSerializer(SECRET_KEY)
+    try:
+        email = serializer.loads(token, salt="email-verification", max_age=3600)  # Token valid for 1 hour
+        return email
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+# Send verification email
+def send_verification_email(email, token):
+    verification_url = f"http://localhost:3000/verify/{token}"
+    message = MIMEText(f"Please verify your email by clicking the link: {verification_url}")
+    message["Subject"] = "Email Verification"
+    message["From"] = EMAIL_SENDER
+    message["To"] = email
+
+    with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
+        server.starttls()
+        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        server.sendmail(EMAIL_SENDER, email, message.as_string())
 
 @router.post("/register")
 def register_user(data: RegisterRequest):
@@ -27,11 +62,29 @@ def register_user(data: RegisterRequest):
     user = User(
         email=data.email,
         hashed_password=hash_password(data.password),
-        business_name=data.business_name
+        business_name=data.business_name,
+        verified=False
     )
     db.add(user)
     db.commit()
-    return {"msg": "User created"}
+
+    # Generate and send verification email
+    token = generate_verification_token(data.email)
+    send_verification_email(data.email, token)
+
+    return {"msg": "User created. Please verify your email."}
+
+@router.get("/verify/{token}")
+def verify_email(token: str):
+    email = verify_token(token)
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.verified = True
+    db.commit()
+    return {"msg": "Email verified successfully"}
 
 class LoginRequest(BaseModel):
     email: EmailStr

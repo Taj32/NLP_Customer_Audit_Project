@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Text, JSON
+from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Text, JSON, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -11,6 +11,8 @@ class User(Base):
     hashed_password = Column(String)
     business_name = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
+    verified = Column(Boolean, default=False)
+
 
 class Conversation(Base):
     __tablename__ = "conversations"
