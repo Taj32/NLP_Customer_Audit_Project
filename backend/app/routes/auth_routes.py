@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr
 from jose import jwt
 import os
 from dotenv import load_dotenv
-from itsdangerous.url_safe import URLSafeTimedSerializer
+from itsdangerous import URLSafeTimedSerializer
 import smtplib
 from email.mime.text import MIMEText
 
@@ -49,10 +49,17 @@ def send_verification_email(email, token):
     message["From"] = EMAIL_SENDER
     message["To"] = email
 
-    with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
-        server.starttls()
-        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        server.sendmail(EMAIL_SENDER, email, message.as_string())
+    try:
+        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_SENDER, EMAIL_PASSWORD)  # Authenticate
+            server.sendmail(EMAIL_SENDER, email, message.as_string())
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"SMTP Authentication Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to authenticate with the email server.")
+    except Exception as e:
+        print(f"SMTP Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send email.")
 
 @router.post("/register")
 def register_user(data: RegisterRequest):
