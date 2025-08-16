@@ -18,7 +18,7 @@ function VerifyPage() {
         setMessage(res.data.msg);
         setTimeout(() => navigate("/login"), 3000); // Redirect after 3 seconds
       })
-      .catch((err) => {
+      .catch((err) => { 
         console.error("Verification error:", err.response?.data || err.message); // Debug log
         setMessage(err.response?.data?.detail || "Verification failed.");
       });
