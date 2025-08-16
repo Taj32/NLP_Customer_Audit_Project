@@ -24,4 +24,5 @@ script_progress.log
 # scripts/
 # dashboard/
 # docker-compose.yml
+testing.py
 
