@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ConversationPage from './pages/ConversationPage';
 import RegisterPage from './pages/RegisterPage';
+import VerifyPage from './pages/VerifyPage'; // Import the VerifyPage
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/conversation/:id" element={<ConversationPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify/:token" element={<VerifyPage />} /> {/* Add this route */}
       </Routes>
     </Router>
   );

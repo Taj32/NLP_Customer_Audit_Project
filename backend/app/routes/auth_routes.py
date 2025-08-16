@@ -43,7 +43,8 @@ def verify_token(token):
 
 # Send verification email
 def send_verification_email(email, token):
-    verification_url = f"http://localhost:3000/verify/{token}"
+    # Use your production domain instead of localhost
+    verification_url = f"https://conversight.vercel.app/verify/{token}"
     message = MIMEText(f"Please verify your email by clicking the link: {verification_url}")
     message["Subject"] = "Email Verification"
     message["From"] = EMAIL_SENDER
@@ -90,15 +91,27 @@ def register_user(data: RegisterRequest):
 
 @router.get("/verify/{token}")
 def verify_email(token: str):
-    email = verify_token(token)
-    db = SessionLocal()
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    user.verified = True
-    db.commit()
-    return {"msg": "Email verified successfully"}
+    try:
+        # Decode the token to get the email
+        email = verify_token(token)
+        print(f"Verifying email: {email}")  # Debug log
+
+        # Find the user in the database
+        db = SessionLocal()
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Update the user's verified status
+        if user.verified:
+            return {"msg": "Email is already verified."}
+
+        user.verified = True
+        db.commit()
+        return {"msg": "Email verified successfully!"}
+    except Exception as e:
+        print(f"Verification error: {e}")
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
 
 class LoginRequest(BaseModel):
     email: EmailStr
