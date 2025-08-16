@@ -50,10 +50,14 @@ def send_verification_email(email, token):
     message["To"] = email
 
     try:
+        print(f"Connecting to SMTP server: {EMAIL_HOST}:{EMAIL_PORT}")  # Debug log
         with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
             server.starttls()
+            print(f"Authenticating with email: {EMAIL_SENDER}")  # Debug log
             server.login(EMAIL_SENDER, EMAIL_PASSWORD)  # Authenticate
+            print(f"Sending email to: {email}")  # Debug log
             server.sendmail(EMAIL_SENDER, email, message.as_string())
+            print("Email sent successfully!")  # Debug log
     except smtplib.SMTPAuthenticationError as e:
         print(f"SMTP Authentication Error: {e}")
         raise HTTPException(status_code=500, detail="Failed to authenticate with the email server.")
@@ -63,6 +67,7 @@ def send_verification_email(email, token):
 
 @router.post("/register")
 def register_user(data: RegisterRequest):
+    print(f"Received registration data: {data}")  # Debug log
     db = SessionLocal()
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(400, detail="Email already exists")
@@ -77,6 +82,7 @@ def register_user(data: RegisterRequest):
 
     # Generate and send verification email
     token = generate_verification_token(data.email)
+    print(f"Generated token: {token}")  # Debug log
     send_verification_email(data.email, token)
 
     return {"msg": "User created. Please verify your email."}
