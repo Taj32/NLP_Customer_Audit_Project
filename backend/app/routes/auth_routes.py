@@ -15,7 +15,7 @@ router = APIRouter()
 load_dotenv()  # Load environment variables from .env
 
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret")  # Use fallback for safety
-ALGORITHM = "HS256"
+ALGORITHM = "HS256" 
 
 EMAIL_SENDER = os.getenv("EMAIL_SENDER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
