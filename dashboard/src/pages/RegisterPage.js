@@ -19,6 +19,7 @@ function RegisterPage() {
       });
       window.location.href = "/";
     } catch (err) {
+      console.error("Registration error:", err.response?.data || err.message); // Debug log
       alert("Registration failed");
     }
   };

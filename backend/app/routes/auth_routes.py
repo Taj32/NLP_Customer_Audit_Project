@@ -68,9 +68,11 @@ def send_verification_email(email, token):
 @router.post("/register")
 def register_user(data: RegisterRequest):
     print(f"Received registration data: {data}")  # Debug log
+
     db = SessionLocal()
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(400, detail="Email already exists")
+
     user = User(
         email=data.email,
         hashed_password=hash_password(data.password),
@@ -80,7 +82,6 @@ def register_user(data: RegisterRequest):
     db.add(user)
     db.commit()
 
-    # Generate and send verification email
     token = generate_verification_token(data.email)
     print(f"Generated token: {token}")  # Debug log
     send_verification_email(data.email, token)
