@@ -17,7 +17,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/conversation/:id" element={<ConversationPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/verify/:token" element={<VerifyPage />} /> {/* Add this route */}
+        <Route path="/verify/:token" element={<VerifyPage />} /> {/* Add this route */} 
       </Routes>
     </Router>
   );

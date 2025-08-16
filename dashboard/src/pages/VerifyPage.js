@@ -10,13 +10,16 @@ function VerifyPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Verification URL:", `${REACT_APP_API_URL}/auth/verify/${token}`); // Debug log
     axios
       .get(`${REACT_APP_API_URL}/auth/verify/${token}`)
       .then((res) => {
+        console.log("Verification response:", res.data); // Debug log
         setMessage(res.data.msg);
         setTimeout(() => navigate("/login"), 3000); // Redirect after 3 seconds
       })
       .catch((err) => {
+        console.error("Verification error:", err.response?.data || err.message); // Debug log
         setMessage(err.response?.data?.detail || "Verification failed.");
       });
   }, [token, navigate]);
